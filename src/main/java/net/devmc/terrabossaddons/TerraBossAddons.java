@@ -1,0 +1,26 @@
+package net.devmc.terrabossaddons;
+
+import net.devmc.terrabossaddons.entity.CerberusBoss;
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.SpawnGroup;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.util.Identifier;
+
+public class TerraBossAddons implements ModInitializer {
+
+	public static final String MOD_ID = "terrabossaddons";
+
+	public static final EntityType<CerberusBoss> CERBERUS = Registry.register(
+			Registries.ENTITY_TYPE,
+			Identifier.of(MOD_ID, "cerberus"),
+			EntityType.Builder.create(CerberusBoss::new, SpawnGroup.MONSTER).setDimensions(0.75f, 0.75f).build("cube")
+	);
+
+	@Override
+	public void onInitialize() {
+		FabricDefaultAttributeRegistry.register(CERBERUS, CerberusBoss.createMobAttributes());
+	}
+}

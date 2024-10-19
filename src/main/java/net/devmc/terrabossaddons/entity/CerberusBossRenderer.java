@@ -6,10 +6,10 @@ import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.MobEntityRenderer;
 import net.minecraft.util.Identifier;
 
-public class CerberusBossRenderer extends MobEntityRenderer<CerberusBoss, CerberusBossModel> {
+public class CerberusBossRenderer extends MobEntityRenderer<CerberusBoss, CerberusBossModel<CerberusBoss>> {
 
 	public CerberusBossRenderer(EntityRendererFactory.Context context) {
-		super(context, new CerberusBossModel(context.getPart(TerraBossAddonsClient.MODEL_CERBERUS_LAYER)), 0.5f);
+		super(context, new CerberusBossModel<>(context.getPart(TerraBossAddonsClient.MODEL_CERBERUS_LAYER)), 2f);
 	}
 
 	@Override

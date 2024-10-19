@@ -1,21 +1,123 @@
 package net.devmc.terrabossaddons.entity;
 
+import net.devmc.terrabossaddons.entity.ai.CerberusAttackGoal;
+import net.devmc.terrabossaddons.entity.ai.CerberusTargetGoal;
 import net.minecraft.client.render.entity.animation.Animation;
 import net.minecraft.client.render.entity.animation.AnimationHelper;
 import net.minecraft.client.render.entity.animation.Keyframe;
 import net.minecraft.client.render.entity.animation.Transformation;
+import net.minecraft.entity.AnimationState;
+import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.attribute.DefaultAttributeContainer;
+import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.data.DataTracker;
+import net.minecraft.entity.data.TrackedData;
+import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.world.World;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class CerberusBoss extends PathAwareEntity {
+
+	private static final TrackedData<Boolean> ATTACKING =
+			DataTracker.registerData(CerberusBoss.class, TrackedDataHandlerRegistry.BOOLEAN);
+
+	public final AnimationState idleAnimationState = new AnimationState();
+	private int idleAnimationTimeout = 0;
+
+	public final AnimationState attackAnimationState = new AnimationState();
+	public int attackAnimationTimeout = 0;
+
+	private final Map<LivingEntity, Integer> hits = new HashMap<>();
 
 	public CerberusBoss(EntityType<? extends PathAwareEntity> entityType, World world) {
 		super(entityType, world);
+		createCerberusAttributes();
 	}
 
+	private void setupAnimationStates() {
+		if (this.idleAnimationTimeout <= 0) {
+			this.idleAnimationTimeout = this.random.nextInt(40) + 80;
+			this.idleAnimationState.start(this.age);
+		} else {
+			--this.idleAnimationTimeout;
+		}
+
+		if(this.isAttacking() && attackAnimationTimeout <= 0) {
+			attackAnimationTimeout = 40;
+			attackAnimationState.start(this.age);
+		} else {
+			--this.attackAnimationTimeout;
+		}
+
+		if(!this.isAttacking()) {
+			attackAnimationState.stop();
+		}
+	}
+
+	@Override
+	protected void updateLimbs(float posDelta) {
+		float f = this.getPose() == EntityPose.STANDING ? Math.min(posDelta * 6.0f, 1.0f) : 0.0f;
+		this.limbAnimator.updateLimbs(f, 0.2f);
+	}
+
+	@Override
+	public void tick() {
+		super.tick();
+		if(this.getWorld().isClient()) {
+			setupAnimationStates();
+		}
+	}
+
+	@Override
+	protected void initGoals() {
+		this.goalSelector.add(1, new CerberusTargetGoal(this));
+		this.goalSelector.add(2, new CerberusAttackGoal(this, 1D, true));
+	}
+
+	public void setAttacking(boolean attacking) {
+		this.dataTracker.set(ATTACKING, attacking);
+	}
+
+	@Override
+	public boolean isAttacking() {
+		return this.dataTracker.get(ATTACKING);
+	}
+
+	@Override
+	protected void initDataTracker() {
+		super.initDataTracker();
+		this.dataTracker.startTracking(ATTACKING, false);
+	}
+
+	@Override
 	public float getHealth() {
 		return 15_000F;
+	}
+
+	@Override
+	public void onDamaged(DamageSource damageSource) {
+		if (damageSource.getAttacker() instanceof LivingEntity entity) hits.put(entity, hits.getOrDefault(entity, 1) + 1);
+		super.onDamaged(damageSource);
+	}
+
+	public float getAngerLeveLMultiplier(LivingEntity entity) {
+		int hits = this.hits.getOrDefault(entity, 1);
+		float multiplier = (float) hits / 20;
+		return Math.max(1, Math.max(multiplier, 3));
+	}
+
+	public static DefaultAttributeContainer.Builder createCerberusAttributes() {
+		return PathAwareEntity.createMobAttributes()
+				.add(EntityAttributes.GENERIC_MAX_HEALTH, 15_000)
+				.add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.2f)
+				.add(EntityAttributes.GENERIC_ARMOR, 0.5f)
+				.add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 2);
 	}
 
 	public static final Animation CERBERUS_IDLE = Animation.Builder.create(2f).looping()

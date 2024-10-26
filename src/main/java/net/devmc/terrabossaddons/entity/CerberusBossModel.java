@@ -82,7 +82,10 @@ public class CerberusBossModel<T extends CerberusBoss> extends SinglePartEntityM
 		this.getPart().traverse().forEach(ModelPart::resetTransform);
 		setHeadAngles(netHeadYaw, headPitch);
 
-		if (entity.isAttacking()) this.animateMovement((new Random().nextInt(1, 2) == 1 ? CerberusBoss.CERBERUS_ATTACK1 : CerberusBoss.CERBERUS_ATTACK2) , limbSwing, limbSwingAmount, 2F, 2.5F);
+		if (entity.isAttacking()) {
+			if (entity.isRushing()) this.animateMovement(CerberusBoss.CERBERUS_ATTACK3, limbSwing, limbSwingAmount, 2F, 2.5F);
+			else this.animateMovement((new Random().nextInt(1, 2) == 1 ? CerberusBoss.CERBERUS_ATTACK1 : CerberusBoss.CERBERUS_ATTACK2), limbSwing, limbSwingAmount, 2F, 2.5F);
+		}
 		else {
 			if (entity.isSprinting())
 				this.animateMovement(CerberusBoss.CERBERUS_RUNNING, limbSwing, limbSwingAmount, 2F, 2.5F);

@@ -42,6 +42,7 @@ public class CerberusAttackGoal extends MeleeAttackGoal {
 			resetAttackCooldown();
 			shouldCountTillNextAttack = false;
 			cerberus.setAttacking(false);
+			cerberus.setRushing(false);
 			cerberus.attackAnimationTimeout = 0;
 		}
 	}

@@ -11,6 +11,7 @@ import net.minecraft.client.render.entity.animation.Transformation;
 import net.minecraft.entity.AnimationState;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
@@ -21,9 +22,16 @@ import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.world.World;
 
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
+
 public class CerberusBoss extends PathAwareEntity {
 
 	private static final TrackedData<Boolean> ATTACKING =
+			DataTracker.registerData(CerberusBoss.class, TrackedDataHandlerRegistry.BOOLEAN);
+
+	private static final TrackedData<Boolean> RUSHING =
 			DataTracker.registerData(CerberusBoss.class, TrackedDataHandlerRegistry.BOOLEAN);
 
 	public final AnimationState idleAnimationState = new AnimationState();
@@ -31,6 +39,8 @@ public class CerberusBoss extends PathAwareEntity {
 
 	public final AnimationState attackAnimationState = new AnimationState();
 	public int attackAnimationTimeout = 0;
+
+	private final Set<LivingEntity> attackers = new HashSet<>();
 
 	public CerberusBoss(EntityType<? extends PathAwareEntity> entityType, World world) {
 		super(entityType, world);
@@ -40,7 +50,7 @@ public class CerberusBoss extends PathAwareEntity {
 		return TerraBossAddonsComponents.ANGER.get(this).getAnger();
 	}
 
-	private void setAnger(int anger) {
+	public void setAnger(int anger) {
 		TerraBossAddonsComponents.ANGER.get(this).setAnger(anger);
 	}
 
@@ -87,14 +97,20 @@ public class CerberusBoss extends PathAwareEntity {
 	@Override
 	public void tick() {
 		super.tick();
-		if(this.getWorld().isClient()) {
+		if (this.getWorld().isClient()) {
 			setupAnimationStates();
+		}
+		if (this.getAnger() > 60 && new Random().nextInt(1, 20) == 10) {
+			this.setAnger(this.getAnger() -2);
+			for (LivingEntity attacker : this.getAttackers()) {
+				if (attacker instanceof PlayerEntity player) this.incrementAnger(player, -1);
+			}
 		}
 	}
 
 	@Override
 	protected void initGoals() {
-		this.goalSelector.add(1, new CerberusTargetGoal(this));
+		this.goalSelector.add(1, new CerberusTargetGoal(this, 50));
 		this.goalSelector.add(2, new CerberusAttackGoal(this, 1D, true));
 	}
 
@@ -107,10 +123,19 @@ public class CerberusBoss extends PathAwareEntity {
 		return this.dataTracker.get(ATTACKING);
 	}
 
+	public void setRushing(boolean rushing) {
+        this.dataTracker.set(RUSHING, rushing);
+    }
+
+	public boolean isRushing() {
+		return this.dataTracker.get(RUSHING);
+	}
+
 	@Override
 	protected void initDataTracker() {
 		super.initDataTracker();
 		this.dataTracker.startTracking(ATTACKING, false);
+		this.dataTracker.startTracking(RUSHING, false);
 	}
 
 	@Override
@@ -120,8 +145,17 @@ public class CerberusBoss extends PathAwareEntity {
 
 	@Override
 	public void onDamaged(DamageSource damageSource) {
+		if (damageSource.getAttacker() instanceof LivingEntity attacker) attackers.add(attacker);
 		if (damageSource.getAttacker() instanceof PlayerEntity player) incrementAnger(player, 1);
 		super.onDamaged(damageSource);
+	}
+
+	public Set<LivingEntity> getAttackers() {
+		return attackers;
+	}
+
+	public void clearAttackers() {
+		attackers.clear();
 	}
 
 	public float getAngerLeveLMultiplier(PlayerEntity player) {

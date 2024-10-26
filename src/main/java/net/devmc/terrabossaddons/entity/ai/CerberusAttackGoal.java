@@ -3,6 +3,7 @@ package net.devmc.terrabossaddons.entity.ai;
 import net.devmc.terrabossaddons.entity.CerberusBoss;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.MeleeAttackGoal;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Hand;
 
 public class CerberusAttackGoal extends MeleeAttackGoal {
@@ -46,7 +47,7 @@ public class CerberusAttackGoal extends MeleeAttackGoal {
 	}
 
 	private boolean isEnemyWithinAttackDistance(LivingEntity pEnemy) {
-		return this.cerberus.distanceTo(pEnemy) <= 1 * cerberus.getAngerLeveLMultiplier(pEnemy);
+		return this.cerberus.distanceTo(pEnemy) <= 1 * (pEnemy instanceof PlayerEntity player ? cerberus.getAngerLeveLMultiplier(player) : 1);
 	}
 
 	protected void resetAttackCooldown() {

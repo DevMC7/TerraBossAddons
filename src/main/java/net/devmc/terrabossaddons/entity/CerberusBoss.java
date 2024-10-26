@@ -1,5 +1,7 @@
 package net.devmc.terrabossaddons.entity;
 
+import net.devmc.terrabossaddons.components.AngerComponent;
+import net.devmc.terrabossaddons.components.TerraBossAddonsComponents;
 import net.devmc.terrabossaddons.entity.ai.CerberusAttackGoal;
 import net.devmc.terrabossaddons.entity.ai.CerberusTargetGoal;
 import net.minecraft.client.render.entity.animation.Animation;
@@ -9,7 +11,6 @@ import net.minecraft.client.render.entity.animation.Transformation;
 import net.minecraft.entity.AnimationState;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
@@ -17,10 +18,8 @@ import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.mob.PathAwareEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.world.World;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class CerberusBoss extends PathAwareEntity {
 
@@ -33,11 +32,22 @@ public class CerberusBoss extends PathAwareEntity {
 	public final AnimationState attackAnimationState = new AnimationState();
 	public int attackAnimationTimeout = 0;
 
-	private final Map<LivingEntity, Integer> hits = new HashMap<>();
-
 	public CerberusBoss(EntityType<? extends PathAwareEntity> entityType, World world) {
 		super(entityType, world);
-		createCerberusAttributes();
+	}
+
+	public static int getAnger(CerberusBoss cerberus, PlayerEntity player) {
+		return TerraBossAddonsComponents.ANGER.get(cerberus).getAnger(player);
+	}
+
+	public static void setAnger(CerberusBoss cerberus, PlayerEntity player, int anger) {
+		TerraBossAddonsComponents.ANGER.get(cerberus).setAnger(player, anger);
+	}
+
+	public static void incrementAnger(CerberusBoss cerberus, PlayerEntity player, int amount) {
+		AngerComponent angerComponent = TerraBossAddonsComponents.ANGER.get(cerberus);
+		int currentAnger = angerComponent.getAnger(player);
+		angerComponent.setAnger(player, currentAnger + amount);
 	}
 
 	private void setupAnimationStates() {
@@ -102,13 +112,13 @@ public class CerberusBoss extends PathAwareEntity {
 
 	@Override
 	public void onDamaged(DamageSource damageSource) {
-		if (damageSource.getAttacker() instanceof LivingEntity entity) hits.put(entity, hits.getOrDefault(entity, 1) + 1);
+		if (damageSource.getAttacker() instanceof PlayerEntity player) incrementAnger(this, player, 1);
 		super.onDamaged(damageSource);
 	}
 
-	public float getAngerLeveLMultiplier(LivingEntity entity) {
-		int hits = this.hits.getOrDefault(entity, 1);
-		float multiplier = (float) hits / 20;
+	public float getAngerLeveLMultiplier(PlayerEntity player) {
+		int anger = getAnger(this, player);
+		float multiplier = (float) anger / 20;
 		return Math.max(1, Math.max(multiplier, 3));
 	}
 

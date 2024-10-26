@@ -15,8 +15,16 @@ public class AngerComponent implements Component {
 	int anger;
 	private final Map<PlayerEntity, Integer> angerMap = new HashMap<>();
 
+	public int getAnger() {
+		return anger;
+	}
+
 	public int getAnger(PlayerEntity player) {
 		return angerMap.getOrDefault(player, 0);
+	}
+
+	public void setAnger(int anger) {
+		this.anger = anger;
 	}
 
 	public void setAnger(PlayerEntity player, int anger) {
@@ -30,6 +38,7 @@ public class AngerComponent implements Component {
 	@Override
 	public void readFromNbt(NbtCompound tag) {
 		angerMap.clear();
+		this.anger = tag.getInt("anger");
 		NbtList list = tag.getList("angerLevels", NbtElement.COMPOUND_TYPE);
 		for (int i = 0; i < list.size(); i++) {
 			NbtCompound entry = list.getCompound(i);
@@ -42,6 +51,7 @@ public class AngerComponent implements Component {
 	@Override
 	public void writeToNbt(NbtCompound tag) {
 		NbtList list = new NbtList();
+		tag.putInt("anger", this.anger);
 		for (Map.Entry<PlayerEntity, Integer> entry : angerMap.entrySet()) {
 			NbtCompound entryTag = new NbtCompound();
 			entryTag.putString("player", entry.getKey().getUuidAsString());

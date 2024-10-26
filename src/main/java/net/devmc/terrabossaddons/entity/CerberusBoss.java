@@ -36,18 +36,26 @@ public class CerberusBoss extends PathAwareEntity {
 		super(entityType, world);
 	}
 
-	public static int getAnger(CerberusBoss cerberus, PlayerEntity player) {
-		return TerraBossAddonsComponents.ANGER.get(cerberus).getAnger(player);
+	public int getAnger() {
+		return TerraBossAddonsComponents.ANGER.get(this).getAnger();
 	}
 
-	public static void setAnger(CerberusBoss cerberus, PlayerEntity player, int anger) {
-		TerraBossAddonsComponents.ANGER.get(cerberus).setAnger(player, anger);
+	private void setAnger(int anger) {
+		TerraBossAddonsComponents.ANGER.get(this).setAnger(anger);
 	}
 
-	public static void incrementAnger(CerberusBoss cerberus, PlayerEntity player, int amount) {
-		AngerComponent angerComponent = TerraBossAddonsComponents.ANGER.get(cerberus);
-		int currentAnger = angerComponent.getAnger(player);
-		angerComponent.setAnger(player, currentAnger + amount);
+	public int getAnger(PlayerEntity player) {
+		return TerraBossAddonsComponents.ANGER.get(this).getAnger(player);
+	}
+
+	public void setAnger(PlayerEntity player, int anger) {
+		AngerComponent angerComponent = TerraBossAddonsComponents.ANGER.get(this);
+		angerComponent.setAnger(player, anger);
+		this.setAnger(angerComponent.getAnger() + anger);
+	}
+
+	public void incrementAnger(PlayerEntity player, int amount) {
+		setAnger(player, TerraBossAddonsComponents.ANGER.get(this).getAnger(player) + amount);
 	}
 
 	private void setupAnimationStates() {
@@ -112,12 +120,12 @@ public class CerberusBoss extends PathAwareEntity {
 
 	@Override
 	public void onDamaged(DamageSource damageSource) {
-		if (damageSource.getAttacker() instanceof PlayerEntity player) incrementAnger(this, player, 1);
+		if (damageSource.getAttacker() instanceof PlayerEntity player) incrementAnger(player, 1);
 		super.onDamaged(damageSource);
 	}
 
 	public float getAngerLeveLMultiplier(PlayerEntity player) {
-		int anger = getAnger(this, player);
+		int anger = getAnger(player);
 		float multiplier = (float) anger / 20;
 		return Math.max(1, Math.max(multiplier, 3));
 	}

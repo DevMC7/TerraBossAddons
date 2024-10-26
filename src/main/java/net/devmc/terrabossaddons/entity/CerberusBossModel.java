@@ -6,6 +6,8 @@ import net.minecraft.client.render.entity.model.SinglePartEntityModel;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.MathHelper;
 
+import java.util.Random;
+
 public class CerberusBossModel<T extends CerberusBoss> extends SinglePartEntityModel<T> {
 	private final ModelPart cerberus;
 	private final ModelPart body;
@@ -80,7 +82,7 @@ public class CerberusBossModel<T extends CerberusBoss> extends SinglePartEntityM
 		this.getPart().traverse().forEach(ModelPart::resetTransform);
 		setHeadAngles(netHeadYaw, headPitch);
 
-		if (entity.isAttacking()) this.animateMovement(CerberusBoss.CERBERUS_ATTACK1, limbSwing, limbSwingAmount, 2F, 2.5F);
+		if (entity.isAttacking()) this.animateMovement((new Random().nextInt(1, 2) == 1 ? CerberusBoss.CERBERUS_ATTACK1 : CerberusBoss.CERBERUS_ATTACK2) , limbSwing, limbSwingAmount, 2F, 2.5F);
 		else {
 			if (entity.isSprinting())
 				this.animateMovement(CerberusBoss.CERBERUS_RUNNING, limbSwing, limbSwingAmount, 2F, 2.5F);

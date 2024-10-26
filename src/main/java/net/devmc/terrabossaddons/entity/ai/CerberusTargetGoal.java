@@ -112,7 +112,7 @@ public class CerberusTargetGoal extends ActiveTargetGoal<LivingEntity> {
 		List<List<LivingEntity>> groups = new ArrayList<>();
 		for (LivingEntity entity : entities) {
 			List<LivingEntity> nearbyEntities = entities.stream()
-					.filter(other -> other != entity && entity.distanceTo(other) <= rangeFactor)
+					.filter(other -> other != entity && entity.distanceTo(other) <= rangeFactor && !entity.isSpectator())
 					.toList();
 			if (nearbyEntities.size() >= 2) {
 				List<LivingEntity> group = new ArrayList<>(nearbyEntities);
@@ -124,10 +124,10 @@ public class CerberusTargetGoal extends ActiveTargetGoal<LivingEntity> {
 	}
 
 	private LivingEntity getLatestAttacker() {
-		if (cerberus.getRecentDamageSource() != null &&
-				cerberus.getRecentDamageSource().getAttacker() instanceof LivingEntity lastAttacker &&
-				cerberus.distanceTo(lastAttacker) <= Math.max(16, Math.max(1, cerberus.getAnger()) / 20)
-		) return lastAttacker;
+		if (cerberus.getRecentDamageSource() != null && cerberus.getRecentDamageSource().getAttacker() instanceof LivingEntity lastAttacker) {
+			if (lastAttacker instanceof PlayerEntity player && (player.isCreative() || player.isSpectator())) return null;
+			if (cerberus.distanceTo(lastAttacker) <= Math.max(16, Math.max(1, cerberus.getAnger()) / 20)) return lastAttacker;
+		}
 		return null;
 	}
 
@@ -137,7 +137,8 @@ public class CerberusTargetGoal extends ActiveTargetGoal<LivingEntity> {
 				.orElse(groups.get(0));
 
 		for (LivingEntity member : bestGroup) {
-			if (member instanceof PlayerEntity) if (this.cerberus.distanceTo(member) <= 10) return member;
+			if (member.isSpectator()) continue;
+			if (member instanceof PlayerEntity player) { if (player.isCreative()) {} else if (this.cerberus.distanceTo(member) <= 10) return member; }
 			else if (this.cerberus.distanceTo(member) <= 4) return member;
 		}
 		return null;
@@ -148,10 +149,12 @@ public class CerberusTargetGoal extends ActiveTargetGoal<LivingEntity> {
 		double closestDistance = Double.MAX_VALUE;
 
 		for (LivingEntity entity : entities) {
+			if (entity.isSpectator()) continue;
+
 			float adjustedDistance = 3 * Math.max(2, Math.max(1, cerberus.getAnger()) / 20);
 
 			if (entity.hasStatusEffect(StatusEffects.INVISIBILITY)) adjustedDistance *= 0.5f;
-			if (entity instanceof PlayerEntity player) adjustedDistance *= Math.max(1, cerberus.getAngerLeveLMultiplier(player) / 1.5f);
+			if (entity instanceof PlayerEntity player) if (player.isCreative()) continue; else adjustedDistance *= Math.max(1, cerberus.getAngerLeveLMultiplier(player) / 1.5f);
 
 			double distance = cerberus.distanceTo(entity);
 			if (distance <= adjustedDistance && distance < closestDistance) {

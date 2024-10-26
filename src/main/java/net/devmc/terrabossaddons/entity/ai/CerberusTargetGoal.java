@@ -49,7 +49,10 @@ public class CerberusTargetGoal extends ActiveTargetGoal<LivingEntity> {
 		List<LivingEntity> entities = this.cerberus.getWorld().getEntitiesByClass(
 				LivingEntity.class,
 				box,
-				entity -> entity.isAlive() && !(entity instanceof CerberusBoss)
+				entity -> {
+					if (entity instanceof PlayerEntity player && player.isCreative()) return false;
+					return entity.isAlive() && !entity.isSpectator() && !(entity instanceof CerberusBoss);
+				}
 		);
 		List<List<LivingEntity>> groups = createEntityGroups(entities, rangeFactor);
 
@@ -134,9 +137,8 @@ public class CerberusTargetGoal extends ActiveTargetGoal<LivingEntity> {
 				.orElse(groups.get(0));
 
 		for (LivingEntity member : bestGroup) {
-			if (this.cerberus.distanceTo(member) <= 10) {
-				return member;
-			}
+			if (member instanceof PlayerEntity) if (this.cerberus.distanceTo(member) <= 10) return member;
+			else if (this.cerberus.distanceTo(member) <= 4) return member;
 		}
 		return null;
 	}

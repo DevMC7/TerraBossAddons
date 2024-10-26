@@ -4,7 +4,9 @@
   "version": "${version}",
   "name": "Terra Boss Addons",
   "description": "",
-  "authors": [],
+  "authors": [
+    "DevMC"
+  ],
   "contact": {
     "repo": "https://github.com/DevMC7/TerraBossAddons"
   },

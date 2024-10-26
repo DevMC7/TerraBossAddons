@@ -136,32 +136,57 @@ public class CerberusTargetGoal extends ActiveTargetGoal<LivingEntity> {
 				.max(Comparator.comparingInt(List::size))
 				.orElse(groups.get(0));
 
+		// prioritize players
 		for (LivingEntity member : bestGroup) {
-			if (member.isSpectator()) continue;
-			if (member instanceof PlayerEntity player) { if (player.isCreative()) {} else if (this.cerberus.distanceTo(member) <= 10) return member; }
-			else if (this.cerberus.distanceTo(member) <= 4) return member;
+			if (member instanceof PlayerEntity player && !player.isCreative() && !player.isSpectator()) {
+				if (cerberus.distanceTo(member) <= 10) {
+					return member;
+				}
+			}
 		}
+
+		// if no players are found, choose any other entity in the group
+		for (LivingEntity member : bestGroup) {
+			if (!member.isSpectator() && cerberus.distanceTo(member) <= 4) {
+				return member;
+			}
+		}
+
 		return null;
 	}
 
 	private LivingEntity chooseClosestTarget(List<LivingEntity> entities) {
-		LivingEntity closest = null;
-		double closestDistance = Double.MAX_VALUE;
+		LivingEntity closestPlayer = null;
+		LivingEntity closestEntity = null;
+		double closestPlayerDistance = Double.MAX_VALUE;
+		double closestEntityDistance = Double.MAX_VALUE;
 
 		for (LivingEntity entity : entities) {
 			if (entity.isSpectator()) continue;
 
+			double distance = cerberus.distanceTo(entity);
 			float adjustedDistance = 3 * Math.max(2, Math.max(1, cerberus.getAnger()) / 20);
 
-			if (entity.hasStatusEffect(StatusEffects.INVISIBILITY)) adjustedDistance *= 0.5f;
-			if (entity instanceof PlayerEntity player) if (player.isCreative()) continue; else adjustedDistance *= Math.max(1, cerberus.getAngerLeveLMultiplier(player) / 1.5f);
+			if (entity.hasStatusEffect(StatusEffects.INVISIBILITY)) {
+				adjustedDistance *= 0.5f;
+			}
 
-			double distance = cerberus.distanceTo(entity);
-			if (distance <= adjustedDistance && distance < closestDistance) {
-				closest = entity;
-				closestDistance = distance;
+			if (entity instanceof PlayerEntity player) {
+				if (player.isCreative()) continue;
+				adjustedDistance *= Math.max(1, cerberus.getAngerLeveLMultiplier(player) / 1.5f);
+
+				if (distance <= adjustedDistance && distance < closestPlayerDistance) {
+					closestPlayer = player;
+					closestPlayerDistance = distance;
+				}
+			} else if (distance <= adjustedDistance && distance < closestEntityDistance) {
+				closestEntity = entity;
+				closestEntityDistance = distance;
 			}
 		}
-		return closest;
+
+		// prioritize players
+		return closestPlayer != null ? closestPlayer : closestEntity;
 	}
+
 }

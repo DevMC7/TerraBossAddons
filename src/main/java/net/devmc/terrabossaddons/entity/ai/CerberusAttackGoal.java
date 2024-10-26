@@ -30,11 +30,11 @@ public class CerberusAttackGoal extends MeleeAttackGoal {
 		if (isEnemyWithinAttackDistance(pEnemy)) {
 			shouldCountTillNextAttack = true;
 
-			if(isTimeToStartAttackAnimation()) {
+			if (isTimeToStartAttackAnimation()) {
 				cerberus.setAttacking(true);
 			}
 
-			if(isTimeToAttack()) {
+			if (isTimeToAttack()) {
 				this.mob.getLookControl().lookAt(pEnemy.getX(), pEnemy.getEyeY(), pEnemy.getZ());
 				performAttack(pEnemy);
 			}

@@ -66,7 +66,7 @@ public class CerberusBoss extends PathAwareEntity {
 			--this.idleAnimationTimeout;
 		}
 
-		if(this.isAttacking() && attackAnimationTimeout <= 0) {
+		if (this.isAttacking() && attackAnimationTimeout <= 0) {
 			attackAnimationTimeout = 40;
 			attackAnimationState.start(this.age);
 		} else {

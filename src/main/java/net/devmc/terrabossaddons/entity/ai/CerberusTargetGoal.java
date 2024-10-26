@@ -28,7 +28,7 @@ public class CerberusTargetGoal extends ActiveTargetGoal<LivingEntity> {
 	protected void findClosestTarget() {
 		Box box = new Box(new BlockPos((int) this.mob.getX(), (int) this.mob.getEyeY(), (int) this.mob.getZ()));
 		box.expand(this.getFollowRange(), 4F, this.getFollowRange());
-		List<LivingEntity> entities = this.cerberus.getWorld().getEntitiesByClass(LivingEntity.class, box, livingEntity -> livingEntity.isAlive() && livingEntity != cerberus);
+		List<LivingEntity> entities = this.cerberus.getWorld().getEntitiesByClass(LivingEntity.class, box, livingEntity -> livingEntity.isAlive() && !(livingEntity instanceof CerberusBoss));
 		LivingEntity target =
 				this.cerberus.getWorld().getClosestEntity(this.mob.getWorld()
 				.getEntitiesByClass(
@@ -44,6 +44,9 @@ public class CerberusTargetGoal extends ActiveTargetGoal<LivingEntity> {
 			float distance = 3 * Math.max(2, Math.max(1, cerberus.getAnger()) / 20);
 			if (entity.hasStatusEffect(StatusEffects.INVISIBILITY)) distance *= 0.5f;
 			if (entity instanceof PlayerEntity player) distance *= Math.max(1, cerberus.getAngerLeveLMultiplier(player) / 1.5f);
+			if (cerberus.getRecentDamageSource() != null &&
+					cerberus.getRecentDamageSource().getAttacker() != null &&
+					cerberus.getRecentDamageSource().getAttacker() instanceof LivingEntity lastAttacker) target = lastAttacker;
 			if (cerberus.distanceTo(entity) <= distance) {
 				target = entity;
                 break;

@@ -4,6 +4,8 @@ import net.devmc.terrabossaddons.components.AngerComponent;
 import net.devmc.terrabossaddons.components.TerraBossAddonsComponents;
 import net.devmc.terrabossaddons.entity.ai.CerberusAttackGoal;
 import net.devmc.terrabossaddons.entity.ai.CerberusTargetGoal;
+import net.devmc.terrabossaddons.util.CuboidProvider;
+import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.entity.animation.Animation;
 import net.minecraft.client.render.entity.animation.AnimationHelper;
 import net.minecraft.client.render.entity.animation.Keyframe;
@@ -20,13 +22,16 @@ import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.World;
 
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.Callable;
 
-public class CerberusBoss extends PathAwareEntity {
+public class CerberusBoss extends BossEntity {
 
 	private static final TrackedData<Boolean> ATTACKING =
 			DataTracker.registerData(CerberusBoss.class, TrackedDataHandlerRegistry.BOOLEAN);
@@ -34,11 +39,9 @@ public class CerberusBoss extends PathAwareEntity {
 	private static final TrackedData<Boolean> RUSHING =
 			DataTracker.registerData(CerberusBoss.class, TrackedDataHandlerRegistry.BOOLEAN);
 
-	public final AnimationState idleAnimationState = new AnimationState();
-	private int idleAnimationTimeout = 0;
+	private int attack;
 
-	public final AnimationState attackAnimationState = new AnimationState();
-	public int attackAnimationTimeout = 0;
+	public final AnimationState idleAnimationState = new AnimationState();
 
 	private final Set<LivingEntity> attackers = new HashSet<>();
 
@@ -68,38 +71,11 @@ public class CerberusBoss extends PathAwareEntity {
 		setAnger(player, TerraBossAddonsComponents.ANGER.get(this).getAnger(player) + amount);
 	}
 
-	private void setupAnimationStates() {
-		if (this.idleAnimationTimeout <= 0) {
-			this.idleAnimationTimeout = this.random.nextInt(40) + 80;
-			this.idleAnimationState.start(this.age);
-		} else {
-			--this.idleAnimationTimeout;
-		}
-
-		if (this.isAttacking() && attackAnimationTimeout <= 0) {
-			attackAnimationTimeout = 40;
-			attackAnimationState.start(this.age);
-		} else {
-			--this.attackAnimationTimeout;
-		}
-
-		if(!this.isAttacking()) {
-			attackAnimationState.stop();
-		}
-	}
-
-	@Override
-	protected void updateLimbs(float posDelta) {
-		float f = this.getPose() == EntityPose.STANDING ? Math.min(posDelta * 6.0f, 1.0f) : 0.0f;
-		this.limbAnimator.updateLimbs(f, 0.2f);
-	}
-
 	@Override
 	public void tick() {
 		super.tick();
-		if (this.getWorld().isClient()) {
-			setupAnimationStates();
-		}
+		super.tick();
+
 		if (this.getAnger() > 60 && new Random().nextInt(1, 20) == 10) {
 			this.setAnger(this.getAnger() -2);
 			for (LivingEntity attacker : this.getAttackers()) {
@@ -114,13 +90,19 @@ public class CerberusBoss extends PathAwareEntity {
 		this.goalSelector.add(2, new CerberusAttackGoal(this, 1D, true));
 	}
 
+	@Override
 	public void setAttacking(boolean attacking) {
 		this.dataTracker.set(ATTACKING, attacking);
+		attack = new Random().nextInt(1, 3);
 	}
 
 	@Override
 	public boolean isAttacking() {
 		return this.dataTracker.get(ATTACKING);
+	}
+
+	public int getAttack() {
+		return attack;
 	}
 
 	public void setRushing(boolean rushing) {
@@ -166,10 +148,70 @@ public class CerberusBoss extends PathAwareEntity {
 
 	public static DefaultAttributeContainer.Builder createCerberusAttributes() {
 		return PathAwareEntity.createMobAttributes()
-				.add(EntityAttributes.GENERIC_MAX_HEALTH, 15_000)
+				.add(EntityAttributes.GENERIC_MAX_HEALTH, 15)
 				.add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.2f)
 				.add(EntityAttributes.GENERIC_ARMOR, 0.5f)
 				.add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 2);
+	}
+
+	@Override
+	protected void updateLimbs(float posDelta) {
+		float f = this.getPose() == EntityPose.STANDING ? Math.min(posDelta * 6.0f, 1.0f) : 0.0f;
+		this.limbAnimator.updateLimbs(f, 0.2f);
+	}
+
+	// TODO: Fix the model
+
+	@Override
+	protected Box calculateBoundingBox() {
+		CerberusBossModel<?> model = new CerberusBossModel<>(CerberusBossModel.getTexturedModelData().createModel());
+		ModelPart rootPart = model.getPart();
+
+		double minX = Double.MAX_VALUE;
+		double minY = Double.MAX_VALUE;
+		double minZ = Double.MAX_VALUE;
+		double maxX = Double.MIN_VALUE;
+		double maxY = Double.MIN_VALUE;
+		double maxZ = Double.MIN_VALUE;
+
+		for (ModelPart part : rootPart.traverse().toList()) {
+			CuboidProvider cuboidProvider = CuboidProvider.class.cast(part);
+			for (ModelPart.Cuboid cuboid : cuboidProvider.terraBossAddons$getCuboids()) {
+				minX = Math.min(minX, cuboid.minX);
+				minY = Math.min(minY, cuboid.minY);
+				minZ = Math.min(minZ, cuboid.minZ);
+				maxX = Math.max(maxX, cuboid.maxX);
+				maxY = Math.max(maxY, cuboid.maxY);
+				maxZ = Math.max(maxZ, cuboid.maxZ);
+			}
+		}
+
+		Vec3d pos = this.getPos();
+		return new Box(
+				pos.x + minX, pos.y + minY, pos.z + minZ,
+				pos.x + maxX, pos.y + maxY, pos.z + maxZ
+		);
+	}
+
+	@Override
+	public List<VoxelShape> getColliders() {
+		double x = this.getX();
+		double y = this.getY() + 0.25;
+		double z = this.getZ();
+
+		return List.of(
+				VoxelShapes.cuboid(x - 1.2, y, z - 1.2, x + 1.2, y + 0.25, z + 1.2),
+
+				VoxelShapes.cuboid(x - 1.0, y + 0.25, z - 1.0, x + 1.0, y + 1.5, z + 1.0),
+
+				VoxelShapes.cuboid(x - 0.5, y + 1.5, z - 1.5, x + 0.5, y + 2.5, z - 0.5),
+
+				VoxelShapes.cuboid(x + 0.5, y + 1.5, z - 1.0, x + 1.5, y + 2.5, z),
+
+				VoxelShapes.cuboid(x - 1.5, y + 1.5, z - 1.0, x - 0.5, y + 2.5, z),
+
+				VoxelShapes.cuboid(x - 0.5, y + 0.25, z + 1.0, x + 0.5, y + 0.5, z + 2.0)
+		);
 	}
 
 	public static final Animation CERBERUS_IDLE = Animation.Builder.create(2f).looping()

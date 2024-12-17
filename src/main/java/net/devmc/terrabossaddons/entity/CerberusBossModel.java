@@ -6,10 +6,8 @@ import net.minecraft.client.render.entity.model.SinglePartEntityModel;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.MathHelper;
 
-import java.util.Random;
-
 public class CerberusBossModel<T extends CerberusBoss> extends SinglePartEntityModel<T> {
-	private final ModelPart cerberus;
+	final ModelPart cerberus;
 	private final ModelPart body;
 	private final ModelPart neck1;
 	private final ModelPart head1;
@@ -83,13 +81,14 @@ public class CerberusBossModel<T extends CerberusBoss> extends SinglePartEntityM
 		setHeadAngles(netHeadYaw, headPitch);
 
 		if (entity.isAttacking()) {
-			if (entity.isRushing()) this.animateMovement(CerberusBoss.CERBERUS_ATTACK3, limbSwing, limbSwingAmount, 2F, 2.5F);
-			else this.animateMovement((new Random().nextInt(1, 2) == 1 ? CerberusBoss.CERBERUS_ATTACK1 : CerberusBoss.CERBERUS_ATTACK2), limbSwing, limbSwingAmount, 2F, 2.5F);
+			if (entity.isRushing()) this.animateMovement(CerberusBoss.CERBERUS_RUNNING, limbSwing, limbSwingAmount, 2F, 2.5F);
+			else this.animateMovement(entity.getAttack() == 1 ? CerberusBoss.CERBERUS_ATTACK1 : entity.getAttack() == 2 ? CerberusBoss.CERBERUS_ATTACK2 : CerberusBoss.CERBERUS_ATTACK3, limbSwing, limbSwingAmount, 2F, 2.5F);
 		}
 		else {
 			if (entity.isSprinting())
 				this.animateMovement(CerberusBoss.CERBERUS_RUNNING, limbSwing, limbSwingAmount, 2F, 2.5F);
-			else this.animateMovement(CerberusBoss.CERBERUS_WALKING, limbSwing, limbSwingAmount, 2F, 2.5F);
+			else if (entity.isWalking())
+				this.animateMovement(CerberusBoss.CERBERUS_WALKING, limbSwing, limbSwingAmount, 2F, 2.5F);
 		}
 
 		this.updateAnimation(entity.idleAnimationState, CerberusBoss.CERBERUS_IDLE, ageInTicks, 1F);
@@ -111,7 +110,10 @@ public class CerberusBossModel<T extends CerberusBoss> extends SinglePartEntityM
 
 	@Override
 	public void render(MatrixStack matrices, VertexConsumer vertexConsumer, int light, int overlay, float red, float green, float blue, float alpha) {
+		matrices.push();
+		matrices.scale(2, 2, 2);
 		cerberus.render(matrices, vertexConsumer, light, overlay, red, green, blue, alpha);
+		matrices.pop();
 	}
 
 	@Override

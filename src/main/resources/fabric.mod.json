@@ -24,9 +24,6 @@
       "net.devmc.terrabossaddons.components.TerraBossAddonsComponents"
     ]
   },
-  "mixins": [
-    "terrabossaddons.mixins.json"
-  ],
   "custom": {
     "cardinal-components": [
       "terrabossaddons:anger"
@@ -35,6 +32,7 @@
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric": "*",
-    "minecraft": "${minecraft_version}"
+    "minecraft": "${minecraft_version}",
+    "geckolib": "${geckolib_version}"
   }
 }

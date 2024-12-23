@@ -5,8 +5,14 @@ import net.minecraft.entity.AnimationState;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.world.World;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
-public abstract class BossEntity extends PathAwareEntity implements MultiCollidable {
+public abstract class BossEntity extends PathAwareEntity implements MultiCollidable, GeoEntity {
 
 	public final AnimationState idleAnimationState = new AnimationState();
 	private int idleAnimationTimeout = 0;
@@ -14,8 +20,26 @@ public abstract class BossEntity extends PathAwareEntity implements MultiCollida
 	public final AnimationState attackAnimationState = new AnimationState();
 	public int attackAnimationTimeout = 0;
 
+	private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
+
 	protected BossEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
 		super(entityType, world);
+	}
+
+	@Override
+	public void registerControllers(final AnimatableManager.ControllerRegistrar controllers) {
+		controllers.add(new AnimationController<>(
+				this,
+				"controller",
+				5,
+				this::getControllers));
+	}
+
+	protected abstract <T extends BossEntity> PlayState getControllers(software.bernie.geckolib.core.animation.AnimationState<T> tAnimationState);
+
+	@Override
+	public AnimatableInstanceCache getAnimatableInstanceCache() {
+		return this.geoCache;
 	}
 
 	@Override
@@ -27,13 +51,16 @@ public abstract class BossEntity extends PathAwareEntity implements MultiCollida
 		}
 	}
 
-	public boolean isWalking() {
-
-		double horizontalVelocity = Math.sqrt(
+	public boolean isMoving() {
+		return Math.sqrt(
 				this.getVelocity().x * this.getVelocity().x +
-						this.getVelocity().z * this.getVelocity().z
-		);
-		return this.isOnGround() && horizontalVelocity > 0.01;
+						this.getVelocity().z * this.getVelocity().z +
+						this.getVelocity().y * this.getVelocity().y
+		) > 0.001;
+	}
+
+	public boolean isWalking() {
+		return this.isOnGround() && isMoving();
 	}
 
 	protected void setupAnimationStates() {

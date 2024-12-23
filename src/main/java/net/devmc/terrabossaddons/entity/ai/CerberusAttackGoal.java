@@ -1,106 +1,140 @@
 package net.devmc.terrabossaddons.entity.ai;
 
 import net.devmc.terrabossaddons.entity.CerberusBoss;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.goal.MeleeAttackGoal;
-import net.minecraft.entity.ai.pathing.Path;
+import net.minecraft.entity.ai.goal.Goal;
+import net.minecraft.entity.mob.BlazeEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.Vec3d;
 
-public class CerberusAttackGoal extends MeleeAttackGoal {
+import java.util.EnumSet;
+import java.util.Random;
+
+public class CerberusAttackGoal extends Goal {
 
 	private final CerberusBoss cerberus;
-	private int attackDelay = 20;
-	private int ticksUntilNextAttack = 20;
-	private boolean shouldCountTillNextAttack = false;
+	private int attackCooldown;
+	private int specialAttackCooldown;
+	private int roarAttackCooldown;
+	private boolean isSpecialAttacking;
+	private boolean isRushing;
 
-	private long lastUpdateTime;
-	private Path path;
-
-	public CerberusAttackGoal(CerberusBoss cerberus, double speed, boolean pauseWhenMobIdle) {
-		super(cerberus, speed, pauseWhenMobIdle);
+	public CerberusAttackGoal(CerberusBoss cerberus) {
 		this.cerberus = cerberus;
+		this.attackCooldown = 20;
+		this.specialAttackCooldown = 200;
+		this.roarAttackCooldown = 300;
+		this.isSpecialAttacking = false;
+		this.isRushing = false;
+		this.setControls(EnumSet.of(Control.MOVE, Control.LOOK));
 	}
 
 	@Override
 	public boolean canStart() {
-		long l = this.cerberus.getEntityWorld().getTime();
-		if (l - this.lastUpdateTime < 20L) {
-			this.lastUpdateTime -= 20;
-			return canStart();
-		} else {
-			this.lastUpdateTime = l;
-			LivingEntity livingEntity = this.mob.getTarget();
-			if (livingEntity == null) {
-				return false;
-			} else if (!livingEntity.isAlive()) {
-				return false;
-			} else {
-				this.path = this.mob.getNavigation().findPathTo(livingEntity, 0);
-				if (this.path != null) {
-					return true;
-				} else {
-					return this.getSquaredMaxAttackDistance(livingEntity) >= this.mob.squaredDistanceTo(livingEntity.getX(), livingEntity.getY(), livingEntity.getZ());
-				}
-			}
-		}
+		LivingEntity target = this.cerberus.getTarget();
+		return target != null && target.isAlive() && target instanceof PlayerEntity;
 	}
 
 	@Override
 	public void start() {
-		super.start();
-		attackDelay = 20;
-		ticksUntilNextAttack = 20;
+		this.attackCooldown = 20;
+		this.specialAttackCooldown = 200;
+		this.roarAttackCooldown = 300;
+		this.isSpecialAttacking = false;
+		this.isRushing = false;
 	}
 
 	@Override
 	public void stop() {
 		this.cerberus.setAttacking(false);
-		this.cerberus.setRushing(false);
-		super.stop();
+		this.isSpecialAttacking = false;
+		this.isRushing = false;
 	}
 
-	public boolean shouldRunEveryTick() {
-		return true;
+	@Override
+	public boolean shouldContinue() {
+		LivingEntity target = this.cerberus.getTarget();
+		return target != null && target.isAlive() && !this.cerberus.getNavigation().isIdle();
 	}
 
 	@Override
 	public void tick() {
-		super.tick();
-		LivingEntity livingEntity = this.mob.getTarget();
-		if (shouldCountTillNextAttack) {
-			this.ticksUntilNextAttack = Math.max(this.ticksUntilNextAttack - 1, 0);
-		}
-	}
+		LivingEntity target = this.cerberus.getTarget();
+		if (target == null || !target.isAlive()) return;
 
-	@Override
-	protected void attack(LivingEntity target, double squaredDistance) {
-		if (this.isWithinAttackRange(target)) {
-			if (this.isTimeToAttack()) {
-				this.mob.swingHand(Hand.MAIN_HAND);
-				this.mob.tryAttack(target);
-				this.resetAttackCooldown();
-			}
+		double distanceToTarget = this.cerberus.squaredDistanceTo(target.getX(), target.getY(), target.getZ());
+		boolean canSeeTarget = this.cerberus.canSee(target);
+
+		this.cerberus.getLookControl().lookAt(target, 30.0F, 30.0F);
+
+		if (distanceToTarget > 16.0D) {
+			this.cerberus.getNavigation().startMovingTo(target, 1.0);
 		} else {
-			this.resetAttackCooldown();
+			this.cerberus.getNavigation().stop();
+		}
+
+		if (attackCooldown <= 0 && distanceToTarget <= 4.0D && canSeeTarget) {
+			attack(target);
+			attackCooldown = 20;
+		}
+
+		if (specialAttackCooldown <= 0 && canSeeTarget) {
+			specialAttack(target);
+			specialAttackCooldown = 200;
+			isSpecialAttacking = true;
+		}
+
+		if (roarAttackCooldown <= 0 && new Random().nextInt(100) < 15) {
+			roarAttack(target);
+			roarAttackCooldown = 300;
+		}
+
+		if (this.cerberus.getAnger() > 80 && !isRushing) {
+			rushAttack();
+		}
+
+		if (attackCooldown > 0) {
+			attackCooldown--;
+		}
+
+		if (specialAttackCooldown > 0) {
+			specialAttackCooldown--;
+		}
+
+		if (roarAttackCooldown > 0) {
+			roarAttackCooldown--;
 		}
 	}
 
-	private boolean isWithinAttackRange(LivingEntity target) {
-		double attackRange = this.getSquaredMaxAttackDistance(target);
-		return this.mob.squaredDistanceTo(target.getX(), target.getY(), target.getZ()) <= attackRange;
+	private void attack(LivingEntity target) {
+		this.cerberus.swingHand(Hand.MAIN_HAND);
+		this.cerberus.tryAttack(target);
 	}
 
-	private void resetAttackCooldown() {
-		this.ticksUntilNextAttack = this.getTickCount(attackDelay * 2);
+	private void specialAttack(LivingEntity target) {
+		this.cerberus.getWorld().sendEntityStatus(this.cerberus, (byte) 4);
+		target.damage(this.cerberus.getDamageSources().mobAttack(this.cerberus), 10.0F);
+		target.setOnFireFor(5);
+		this.cerberus.addVelocity(0, 0.5, 0);
 	}
 
-	protected boolean isTimeToAttack() {
-		return this.ticksUntilNextAttack <= 0;
+	private void roarAttack(LivingEntity target) {
+		this.cerberus.getWorld().sendEntityStatus(this.cerberus, (byte) 5);
+		target.setOnFireFor(10);
+
+		for (int i = 0; i < 3; i++) {
+			BlazeEntity blaze = new BlazeEntity(EntityType.BLAZE, this.cerberus.getWorld());
+			Vec3d spawnPos = this.cerberus.getPos().add(new Random().nextDouble() * 6 - 3, 1, new Random().nextDouble() * 6 - 3);
+			blaze.refreshPositionAndAngles(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), 0, 0);
+			this.cerberus.getWorld().spawnEntity(blaze);
+		}
 	}
 
-	protected void performAttack(LivingEntity pEnemy) {
-		this.resetAttackCooldown();
-		this.mob.swingHand(Hand.MAIN_HAND);
-		this.mob.tryAttack(pEnemy);
+	private void rushAttack() {
+		this.isRushing = true;
+		this.cerberus.setRushing(true);
+		this.cerberus.getNavigation().startMovingTo(this.cerberus.getTarget(), 2.5);
 	}
 }

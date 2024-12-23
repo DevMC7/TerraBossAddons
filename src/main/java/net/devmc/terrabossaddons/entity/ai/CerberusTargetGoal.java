@@ -5,6 +5,8 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.ActiveTargetGoal;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.entity.mob.BlazeEntity;
+import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.Box;
 
@@ -56,7 +58,7 @@ public class CerberusTargetGoal extends ActiveTargetGoal<LivingEntity> {
 					double distance = this.cerberus.distanceTo(entity);
 
 					if (entity.hasStatusEffect(StatusEffects.INVISIBILITY)) {
-						distance *= 0.5;
+						distance *= 1.5;
 					}
 					StatusEffectInstance strengthEffect = entity.getStatusEffect(StatusEffects.STRENGTH);
 					if (strengthEffect != null) {
@@ -66,6 +68,10 @@ public class CerberusTargetGoal extends ActiveTargetGoal<LivingEntity> {
 
 					if (entity instanceof PlayerEntity player) {
 						distance *= Math.max(1, cerberus.getAngerLeveLMultiplier(player) / 1.5f);
+					} else if (entity instanceof AnimalEntity) {
+						distance *= Math.max(1, ((double) cerberus.getAnger()) / 100);
+					} else if (entity instanceof BlazeEntity) {
+						return Integer.MAX_VALUE;
 					}
 
 					return distance;
@@ -75,7 +81,6 @@ public class CerberusTargetGoal extends ActiveTargetGoal<LivingEntity> {
 		targetQueue.addAll(potentialTargets);
 
 		this.targetEntity = targetQueue.stream()
-				.filter(entity -> entity instanceof PlayerEntity)
 				.findFirst()
 				.orElse(targetQueue.isEmpty() ? null : targetQueue.peek());
 	}

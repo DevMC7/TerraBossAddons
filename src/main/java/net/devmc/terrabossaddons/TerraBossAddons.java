@@ -20,7 +20,7 @@ public class TerraBossAddons implements ModInitializer {
 	public static final EntityType<CerberusBoss> CERBERUS = Registry.register(
 			Registries.ENTITY_TYPE,
 			Identifier.of(MOD_ID, "cerberus"),
-			EntityType.Builder.create(CerberusBoss::new, SpawnGroup.MONSTER).setDimensions(8, 8).build("cerberus")
+			EntityType.Builder.create(CerberusBoss::new, SpawnGroup.MONSTER).setDimensions(3, 3).build("cerberus")
 	);
 
 	@Override

@@ -4,6 +4,8 @@ import net.devmc.terrabossaddons.components.AngerComponent;
 import net.devmc.terrabossaddons.components.TerraBossAddonsComponents;
 import net.devmc.terrabossaddons.entity.ai.CerberusAttackGoal;
 import net.devmc.terrabossaddons.entity.ai.CerberusTargetGoal;
+import net.devmc.terrabossaddons.util.ScheduledTask;
+import net.devmc.terrabossaddons.util.Scheduler;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -45,6 +47,7 @@ public class CerberusBoss extends BossEntity {
 		setAttacking(false);
 		setRushing(false);
 		setRoaring(false);
+		setHealth(getMaxHealth());
 	}
 
 	public int getAnger() {
@@ -126,6 +129,7 @@ public class CerberusBoss extends BossEntity {
 		super.initDataTracker();
 		this.dataTracker.startTracking(ATTACKING, false);
 		this.dataTracker.startTracking(RUSHING, false);
+		this.dataTracker.startTracking(ROARING, false);
 	}
 
 	@Override
@@ -135,13 +139,18 @@ public class CerberusBoss extends BossEntity {
 
 	@Override
 	public void onDamaged(DamageSource damageSource) {
-		if (damageSource.getAttacker() instanceof LivingEntity attacker) attackers.add(attacker);
-		if (damageSource.getAttacker() instanceof PlayerEntity player) incrementAnger(player, 1);
+		if (damageSource.getAttacker() instanceof LivingEntity attacker) {
+			attackers.add(attacker);
+			Scheduler.scheduleTask(() -> attackers.remove(attacker), 300);
+		}
+		if (damageSource.getAttacker() instanceof PlayerEntity player) {
+			incrementAnger(player, 1);
+		}
 		super.onDamaged(damageSource);
 	}
 
 	public Set<LivingEntity> getAttackers() {
-		return attackers;
+		return this.attackers;
 	}
 
 	public void clearAttackers() {

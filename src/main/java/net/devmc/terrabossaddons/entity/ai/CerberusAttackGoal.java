@@ -1,6 +1,7 @@
 package net.devmc.terrabossaddons.entity.ai;
 
 import net.devmc.terrabossaddons.entity.CerberusBoss;
+import net.devmc.terrabossaddons.util.Scheduler;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.Goal;
@@ -8,6 +9,9 @@ import net.minecraft.entity.mob.BlazeEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.Vec3d;
+import team.lodestar.lodestone.handlers.ScreenshakeHandler;
+import team.lodestar.lodestone.systems.easing.Easing;
+import team.lodestar.lodestone.systems.screenshake.ScreenshakeInstance;
 
 import java.util.EnumSet;
 import java.util.Random;
@@ -123,6 +127,10 @@ public class CerberusAttackGoal extends Goal {
 	private void roarAttack(LivingEntity target) {
 		this.cerberus.getWorld().sendEntityStatus(this.cerberus, (byte) 5);
 		target.setOnFireFor(10);
+
+		if (this.cerberus.getWorld().isClient()) {
+			Scheduler.scheduleTask(() -> ScreenshakeHandler.addScreenshake(new ScreenshakeInstance(60).setIntensity(0.7f , 1.1f, 0.5f).setEasing(Easing.BACK_IN_OUT)), 15);
+		}
 
 		for (int i = 0; i < 3; i++) {
 			BlazeEntity blaze = new BlazeEntity(EntityType.BLAZE, this.cerberus.getWorld());

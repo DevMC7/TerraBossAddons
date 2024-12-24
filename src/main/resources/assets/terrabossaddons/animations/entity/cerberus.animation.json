@@ -1,7 +1,7 @@
 {
 	"format_version": "1.8.0",
 	"animations": {
-		"animation.cereberus.idle": {
+		"animation.cerberus.idle": {
 			"loop": true,
 			"animation_length": 2,
 			"bones": {
@@ -389,7 +389,7 @@
 				}
 			}
 		},
-		"animation.cereberus.walking": {
+		"animation.cerberus.walking": {
 			"loop": true,
 			"animation_length": 2,
 			"bones": {
@@ -899,7 +899,7 @@
 				}
 			}
 		},
-		"animation.cereberus.running": {
+		"animation.cerberus.running": {
 			"loop": true,
 			"animation_length": 1,
 			"bones": {
@@ -1418,7 +1418,7 @@
 				}
 			}
 		},
-		"animation.cereberus.attack1": {
+		"animation.cerberus.attack1": {
 			"animation_length": 0.75,
 			"bones": {
 				"body": {
@@ -1880,7 +1880,7 @@
 				}
 			}
 		},
-		"animation.cereberus.attack2": {
+		"animation.cerberus.attack2": {
 			"animation_length": 0.75,
 			"bones": {
 				"body": {
@@ -2345,7 +2345,7 @@
 				}
 			}
 		},
-		"animation.cereberus.attack3": {
+		"animation.cerberus.attack3": {
 			"animation_length": 0.75,
 			"bones": {
 				"body": {
@@ -2807,7 +2807,7 @@
 				}
 			}
 		},
-		"animation.cereberus.roar": {
+		"animation.cerberus.roar": {
 			"animation_length": 3.875,
 			"bones": {
 				"body": {

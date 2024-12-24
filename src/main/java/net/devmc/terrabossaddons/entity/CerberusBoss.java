@@ -17,9 +17,6 @@ import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.World;
 import software.bernie.geckolib.core.animation.Animation;
 import software.bernie.geckolib.core.animation.AnimationState;
@@ -45,6 +42,9 @@ public class CerberusBoss extends BossEntity {
 
 	public CerberusBoss(EntityType<? extends PathAwareEntity> entityType, World world) {
 		super(entityType, world);
+		setAttacking(false);
+		setRushing(false);
+		setRoaring(false);
 	}
 
 	public int getAnger() {
@@ -93,7 +93,7 @@ public class CerberusBoss extends BossEntity {
 	@Override
 	public void setAttacking(boolean attacking) {
 		this.dataTracker.set(ATTACKING, attacking);
-		attack = new Random().nextInt(1, 3);
+		if (attacking) attack = new Random().nextInt(1, 3);
 	}
 
 	@Override
@@ -168,37 +168,9 @@ public class CerberusBoss extends BossEntity {
 		this.limbAnimator.updateLimbs(f, 0.2f);
 	}
 
-	// TODO: Fix the model
-
-	@Override
-	protected Box calculateBoundingBox() {
-		return new Box(0,0, 0, 0, 0, 0);
-	}
-
-	@Override
-	public List<VoxelShape> getColliders() {
-		double x = this.getX();
-		double y = this.getY() + 0.25;
-		double z = this.getZ();
-
-		return List.of(
-				VoxelShapes.cuboid(x - 1.2, y, z - 1.2, x + 1.2, y + 0.25, z + 1.2),
-
-				VoxelShapes.cuboid(x - 1.0, y + 0.25, z - 1.0, x + 1.0, y + 1.5, z + 1.0),
-
-				VoxelShapes.cuboid(x - 0.5, y + 1.5, z - 1.5, x + 0.5, y + 2.5, z - 0.5),
-
-				VoxelShapes.cuboid(x + 0.5, y + 1.5, z - 1.0, x + 1.5, y + 2.5, z),
-
-				VoxelShapes.cuboid(x - 1.5, y + 1.5, z - 1.0, x - 0.5, y + 2.5, z),
-
-				VoxelShapes.cuboid(x - 0.5, y + 0.25, z + 1.0, x + 0.5, y + 0.5, z + 2.0)
-		);
-	}
-
 	public static final RawAnimation IDLE = RawAnimation.begin().then("animation.cerberus.idle", Animation.LoopType.LOOP);
 	public static final RawAnimation WALKING = RawAnimation.begin().then("animation.cerberus.walking", Animation.LoopType.LOOP);
-	public static final RawAnimation RUNNING = RawAnimation.begin().then("animation.cerberus.running", Animation.LoopType.PLAY_ONCE);
+	public static final RawAnimation RUNNING = RawAnimation.begin().then("animation.cerberus.running", Animation.LoopType.LOOP);
 	public static final RawAnimation ATTACK_1 = RawAnimation.begin().then("animation.cerberus.attack1", Animation.LoopType.PLAY_ONCE);
 	public static final RawAnimation ATTACK_2 = RawAnimation.begin().then("animation.cerberus.attack2", Animation.LoopType.PLAY_ONCE);
 	public static final RawAnimation ATTACK_3 = RawAnimation.begin().then("animation.cerberus.attack3", Animation.LoopType.PLAY_ONCE);

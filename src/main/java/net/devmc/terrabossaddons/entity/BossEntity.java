@@ -1,6 +1,5 @@
 package net.devmc.terrabossaddons.entity;
 
-import com.bytemaniak.mecha.MultiCollidable;
 import net.minecraft.entity.AnimationState;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.mob.PathAwareEntity;
@@ -12,7 +11,7 @@ import software.bernie.geckolib.core.animation.AnimationController;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public abstract class BossEntity extends PathAwareEntity implements MultiCollidable, GeoEntity {
+public abstract class BossEntity extends PathAwareEntity implements GeoEntity {
 
 	public final AnimationState idleAnimationState = new AnimationState();
 	private int idleAnimationTimeout = 0;

@@ -1,6 +1,7 @@
 package net.devmc.terrabossaddons;
 
 import net.devmc.terrabossaddons.entity.CerberusBoss;
+import net.devmc.terrabossaddons.util.Scheduler;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
@@ -28,5 +29,6 @@ public class TerraBossAddons implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STARTING.register(server -> {
 			TerraBossAddons.server = server;
 		});
+		Scheduler.init();
 	}
 }

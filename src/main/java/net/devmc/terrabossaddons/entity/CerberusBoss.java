@@ -4,7 +4,6 @@ import net.devmc.terrabossaddons.components.AngerComponent;
 import net.devmc.terrabossaddons.components.TerraBossAddonsComponents;
 import net.devmc.terrabossaddons.entity.ai.CerberusAttackGoal;
 import net.devmc.terrabossaddons.entity.ai.CerberusTargetGoal;
-import net.devmc.terrabossaddons.util.ScheduledTask;
 import net.devmc.terrabossaddons.util.Scheduler;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.EntityType;
@@ -17,6 +16,7 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
+import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.world.World;
@@ -42,7 +42,7 @@ public class CerberusBoss extends BossEntity {
 
 	private final Set<LivingEntity> attackers = new HashSet<>();
 
-	public CerberusBoss(EntityType<? extends PathAwareEntity> entityType, World world) {
+	public CerberusBoss(EntityType<? extends HostileEntity> entityType, World world) {
 		super(entityType, world);
 		setAttacking(false);
 		setRushing(false);

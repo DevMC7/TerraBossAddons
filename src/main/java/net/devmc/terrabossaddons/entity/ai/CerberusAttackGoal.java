@@ -23,7 +23,6 @@ public class CerberusAttackGoal extends Goal {
 	private int specialAttackCooldown;
 	private int roarAttackCooldown;
 	private boolean isSpecialAttacking;
-	private boolean isRushing;
 
 	public CerberusAttackGoal(CerberusBoss cerberus) {
 		this.cerberus = cerberus;
@@ -31,14 +30,13 @@ public class CerberusAttackGoal extends Goal {
 		this.specialAttackCooldown = 200;
 		this.roarAttackCooldown = 300;
 		this.isSpecialAttacking = false;
-		this.isRushing = false;
 		this.setControls(EnumSet.of(Control.MOVE, Control.LOOK));
 	}
 
 	@Override
 	public boolean canStart() {
 		LivingEntity target = this.cerberus.getTarget();
-		return target != null && target.isAlive() && target instanceof PlayerEntity;
+		return target != null && target.isAlive();
 	}
 
 	@Override
@@ -47,14 +45,12 @@ public class CerberusAttackGoal extends Goal {
 		this.specialAttackCooldown = 200;
 		this.roarAttackCooldown = 300;
 		this.isSpecialAttacking = false;
-		this.isRushing = false;
 	}
 
 	@Override
 	public void stop() {
 		this.cerberus.setAttacking(false);
 		this.isSpecialAttacking = false;
-		this.isRushing = false;
 	}
 
 	@Override
@@ -95,7 +91,7 @@ public class CerberusAttackGoal extends Goal {
 			roarAttackCooldown = 300;
 		}
 
-		if (this.cerberus.getAnger() > 80 && !isRushing) {
+		if (this.cerberus.getAnger() > 80 && !cerberus.isRushing()) {
 			rushAttack();
 		}
 
@@ -122,9 +118,14 @@ public class CerberusAttackGoal extends Goal {
 		target.damage(this.cerberus.getDamageSources().mobAttack(this.cerberus), 10.0F);
 		target.setOnFireFor(5);
 		this.cerberus.addVelocity(0, 0.5, 0);
+		this.cerberus.setAnger(cerberus.getAnger() - 10);
+		for (LivingEntity attacker : cerberus.getAttackers()) {
+			if (attacker instanceof PlayerEntity player && this.cerberus.getTarget() == player) cerberus.incrementAnger(player, -5);
+		}
 	}
 
 	private void roarAttack(LivingEntity target) {
+		this.cerberus.setRoaring(true);
 		this.cerberus.getWorld().sendEntityStatus(this.cerberus, (byte) 5);
 		target.setOnFireFor(10);
 
@@ -138,11 +139,25 @@ public class CerberusAttackGoal extends Goal {
 			blaze.refreshPositionAndAngles(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), 0, 0);
 			this.cerberus.getWorld().spawnEntity(blaze);
 		}
+
+		this.cerberus.setAnger(cerberus.getAnger() - 30);
+		for (LivingEntity attacker : cerberus.getAttackers()) {
+			if (attacker instanceof PlayerEntity player) {
+				if (this.cerberus.getTarget() == player) cerberus.incrementAnger(player, -20);
+				else cerberus.incrementAnger(player, -10);
+			}
+		}
 	}
 
 	private void rushAttack() {
-		this.isRushing = true;
 		this.cerberus.setRushing(true);
 		this.cerberus.getNavigation().startMovingTo(this.cerberus.getTarget(), 2.5);
+		this.cerberus.setAnger(cerberus.getAnger() - 25);
+		for (LivingEntity attacker : cerberus.getAttackers()) {
+			if (attacker instanceof PlayerEntity player) {
+				if (this.cerberus.getTarget() == player) cerberus.incrementAnger(player, -20);
+				else cerberus.incrementAnger(player, -10);
+			}
+		}
 	}
 }

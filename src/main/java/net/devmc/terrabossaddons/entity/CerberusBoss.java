@@ -84,7 +84,7 @@ public class CerberusBoss extends BossEntity {
 
 	@Override
 	protected void initGoals() {
-		this.goalSelector.add(1, new CerberusTargetGoal(this, 50));
+		this.goalSelector.add(1, new CerberusTargetGoal(this));
 		this.goalSelector.add(2, new CerberusAttackGoal(this));
 		this.goalSelector.add(3, new WanderAroundGoal(this, 0.5f));
 		this.goalSelector.add(4, new LookAroundGoal(this));

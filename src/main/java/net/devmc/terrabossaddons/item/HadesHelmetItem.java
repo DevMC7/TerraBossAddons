@@ -26,7 +26,7 @@ public class HadesHelmetItem extends ArmorItem {
 	public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
 		super.inventoryTick(stack, world, entity, slot, selected);
 
-		if (!world.isClient() && entity instanceof PlayerEntity player && player.getInventory().getArmorStack(3).isOf(this)) {
+		if (world.isClient() && entity instanceof PlayerEntity player && player.getInventory().getArmorStack(3).isOf(this)) {
 			double centerX = player.getX();
 			double centerY = player.getY() + 2.2;
 			double centerZ = player.getZ();

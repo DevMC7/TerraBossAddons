@@ -33,6 +33,7 @@ public abstract class BossEntity extends HostileEntity implements GeoEntity {
 		super(entityType, world);
 		this.bossBar = new ServerBossBar(this.getDisplayName(), BossBar.Color.PURPLE, BossBar.Style.PROGRESS);
 		this.bossBar.setPercent(0.0F);
+		this.setHealth(this.getMaxHealth());
 	}
 
 	@Override

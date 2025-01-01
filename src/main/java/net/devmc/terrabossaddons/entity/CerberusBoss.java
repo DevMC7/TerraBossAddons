@@ -1,5 +1,6 @@
 package net.devmc.terrabossaddons.entity;
 
+import net.devmc.terrabossaddons.TerraBossAddons;
 import net.devmc.terrabossaddons.components.AngerComponent;
 import net.devmc.terrabossaddons.components.TerraBossAddonsComponents;
 import net.devmc.terrabossaddons.entity.ai.CerberusAttackGoal;
@@ -19,6 +20,9 @@ import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.ItemScatterer;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import software.bernie.geckolib.core.animation.Animation;
 import software.bernie.geckolib.core.animation.AnimationState;
@@ -47,7 +51,6 @@ public class CerberusBoss extends BossEntity {
 		setAttacking(false);
 		setRushing(false);
 		setRoaring(false);
-		setHealth(getMaxHealth());
 	}
 
 	public int getAnger() {
@@ -88,9 +91,9 @@ public class CerberusBoss extends BossEntity {
 	@Override
 	protected void initGoals() {
 		this.goalSelector.add(1, new CerberusTargetGoal(this));
-		this.goalSelector.add(2, new CerberusAttackGoal(this));
-		this.goalSelector.add(3, new WanderAroundGoal(this, 0.5f));
-		this.goalSelector.add(4, new LookAroundGoal(this));
+		this.goalSelector.add(1, new CerberusAttackGoal(this));
+		this.goalSelector.add(2, new WanderAroundGoal(this, 0.5f));
+		this.goalSelector.add(3, new LookAroundGoal(this));
 	}
 
 	@Override
@@ -133,11 +136,6 @@ public class CerberusBoss extends BossEntity {
 	}
 
 	@Override
-	public float getHealth() {
-		return 15_000F;
-	}
-
-	@Override
 	public void onDamaged(DamageSource damageSource) {
 		if (damageSource.getAttacker() instanceof LivingEntity attacker) {
 			attackers.add(attacker);
@@ -147,6 +145,27 @@ public class CerberusBoss extends BossEntity {
 			incrementAnger(player, 1);
 		}
 		super.onDamaged(damageSource);
+	}
+
+	@Override
+	public void onDeath(DamageSource source) {
+		if (!this.getWorld().isClient) {
+			this.setHealth(0.1F);
+			this.setInvulnerable(true);
+			playDeathAnimation();
+
+			Scheduler.scheduleTask(() -> {
+				ItemScatterer.spawn(this.getWorld(), this.getX(), this.getY(), this.getZ(), new ItemStack(TerraBossAddons.HADES_HELMET));
+				this.discard();
+				super.onDeath(source);
+			}, 100);
+		}
+	}
+
+	private void playDeathAnimation() {
+		for (int i = 50; i > 0; i--) {
+			Scheduler.scheduleTask(() -> this.addVelocity(new Vec3d(this.getX(), this.getY() + 0.1, this.getZ())), 2);
+		}
 	}
 
 	public Set<LivingEntity> getAttackers() {
@@ -164,7 +183,7 @@ public class CerberusBoss extends BossEntity {
 	}
 
 	public static DefaultAttributeContainer.Builder createCerberusAttributes() {
-		return PathAwareEntity.createMobAttributes()
+		return HostileEntity.createMobAttributes()
 				.add(EntityAttributes.GENERIC_MAX_HEALTH, 15000)
 				.add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.2f)
 				.add(EntityAttributes.GENERIC_ARMOR, 0.5f)

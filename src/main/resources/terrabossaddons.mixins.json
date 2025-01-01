@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "net.devmc.terrabossaddons.mixin",
+  "mixins": [
+    "LightningEntityMixin",
+    "ParticleMixin"
+  ],
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

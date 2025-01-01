@@ -4,6 +4,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public class HadesHelmetItem extends ArmorItem {
@@ -38,15 +39,18 @@ public class HadesHelmetItem extends ArmorItem {
 				double offsetX = radius * Math.cos(angle);
 				double offsetZ = radius * Math.sin(angle);
 
-				world.addParticle(
-						ParticleTypes.SOUL_FIRE_FLAME,
-						centerX + offsetX,
-						centerY,
-						centerZ + offsetZ,
-						0, 0, 0
-				);
+				BlockPos pos = new BlockPos((int) (centerX + offsetX), (int) centerY, (int) (centerZ + offsetZ));
+				if (!world.getBlockState(pos).isOpaqueFullCube(world, pos)) {
+					world.addImportantParticle(
+							ParticleTypes.SOUL_FIRE_FLAME,
+							true,
+							centerX + offsetX,
+							centerY,
+							centerZ + offsetZ,
+							0, 0, 0
+					);
+				}
 			}
 		}
 	}
-
 }

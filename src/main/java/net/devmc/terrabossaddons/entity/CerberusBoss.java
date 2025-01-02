@@ -20,6 +20,8 @@ import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.world.World;
 import software.bernie.geckolib.core.animation.Animation;
@@ -225,5 +227,15 @@ public class CerberusBoss extends BossEntity {
 			tAnimationState.getController().setAnimation(IDLE);
 		}
 		return PlayState.CONTINUE;
+	}
+
+	@Override
+	protected SoundEvent getHurtSound(DamageSource source) {
+		return SoundEvents.ENTITY_POLAR_BEAR_HURT;
+	}
+
+	@Override
+	protected SoundEvent getDeathSound() {
+		return SoundEvents.ENTITY_POLAR_BEAR_DEATH;
 	}
 }

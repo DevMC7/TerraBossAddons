@@ -30,13 +30,14 @@ public class CerberusTargetGoal extends ActiveTargetGoal<LivingEntity> {
 
 	@Override
 	public boolean canStart() {
-		return true;
+		findClosestTarget();
+		return this.targetEntity != null && this.targetEntity.isAlive();
 	}
 
 	@Override
 	protected void findClosestTarget() {
 		float searchRadius = Math.max(10, (float) this.cerberus.getAnger() / 10 + this.cerberus.getHealth() / 2);
-		Box searchArea = this.cerberus.getBoundingBox().expand(searchRadius);
+		Box searchArea = new Box(cerberus.getBlockPos()).expand(searchRadius);
 
 		List<LivingEntity> potentialTargets = this.cerberus.getWorld().getEntitiesByClass(
 				LivingEntity.class,
@@ -58,6 +59,14 @@ public class CerberusTargetGoal extends ActiveTargetGoal<LivingEntity> {
 					}
 
 					if (entity instanceof PlayerEntity player) {
+						if (cerberus.getRecentDamageSource() != null
+								&& cerberus.getRecentDamageSource().getAttacker() != null
+								&& cerberus.getRecentDamageSource().getAttacker() instanceof PlayerEntity attacker) {
+							if (player.getUuid().equals(attacker.getUuid())) {
+								distance *= 0.1;
+							}
+						}
+						distance *= 0.5;
 						distance *= Math.max(1, cerberus.getAngerLeveLMultiplier(player) / 1.5f);
 					} else if (entity instanceof AnimalEntity) {
 						distance *= Math.max(1, ((double) cerberus.getAnger()) / 100);
@@ -74,6 +83,9 @@ public class CerberusTargetGoal extends ActiveTargetGoal<LivingEntity> {
 		this.targetEntity = targetQueue.stream()
 				.findFirst()
 				.orElse(targetQueue.isEmpty() ? null : targetQueue.peek());
+
+		if (targetEntity != null)
+			System.out.println("Targeted: " + targetEntity.getName());
 	}
 
 	private boolean isValidTarget(LivingEntity entity) {

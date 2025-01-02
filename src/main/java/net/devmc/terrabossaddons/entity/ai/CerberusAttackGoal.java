@@ -4,7 +4,7 @@ import net.devmc.terrabossaddons.entity.CerberusBoss;
 import net.devmc.terrabossaddons.util.Scheduler;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.goal.Goal;
+import net.minecraft.entity.ai.goal.AttackGoal;
 import net.minecraft.entity.mob.BlazeEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Hand;
@@ -13,10 +13,9 @@ import team.lodestar.lodestone.handlers.ScreenshakeHandler;
 import team.lodestar.lodestone.systems.easing.Easing;
 import team.lodestar.lodestone.systems.screenshake.ScreenshakeInstance;
 
-import java.util.EnumSet;
 import java.util.Random;
 
-public class CerberusAttackGoal extends Goal {
+public class CerberusAttackGoal extends AttackGoal {
 
 	private final CerberusBoss cerberus;
 	private int attackCooldown;
@@ -25,18 +24,12 @@ public class CerberusAttackGoal extends Goal {
 	private boolean isSpecialAttacking;
 
 	public CerberusAttackGoal(CerberusBoss cerberus) {
+		super(cerberus);
 		this.cerberus = cerberus;
 		this.attackCooldown = 20;
 		this.specialAttackCooldown = 200;
 		this.roarAttackCooldown = 300;
 		this.isSpecialAttacking = false;
-		this.setControls(EnumSet.of(Control.MOVE, Control.LOOK));
-	}
-
-	@Override
-	public boolean canStart() {
-		LivingEntity target = this.cerberus.getTarget();
-		return target != null && target.isAlive();
 	}
 
 	@Override
@@ -49,19 +42,9 @@ public class CerberusAttackGoal extends Goal {
 
 	@Override
 	public void stop() {
+		super.stop();
 		this.cerberus.setAttacking(false);
 		this.isSpecialAttacking = false;
-	}
-
-	@Override
-	public boolean shouldContinue() {
-		LivingEntity target = this.cerberus.getTarget();
-		return target != null && target.isAlive() && !this.cerberus.getNavigation().isIdle();
-	}
-
-	@Override
-	public boolean shouldRunEveryTick() {
-		return true;
 	}
 
 	@Override
@@ -70,22 +53,15 @@ public class CerberusAttackGoal extends Goal {
 		if (target == null || !target.isAlive()) return;
 
 		double distanceToTarget = this.cerberus.squaredDistanceTo(target.getX(), target.getY(), target.getZ());
-		boolean canSeeTarget = this.cerberus.canSee(target);
 
 		this.cerberus.getLookControl().lookAt(target, 30.0F, 30.0F);
 
-		if (distanceToTarget > 16.0D) {
-			this.cerberus.getNavigation().startMovingTo(target, 1.0);
-		} else {
-			this.cerberus.getNavigation().stop();
-		}
-
-		if (attackCooldown <= 0 && distanceToTarget <= 4.0D && canSeeTarget) {
+		if (attackCooldown <= 0 && distanceToTarget <= 4.0D) {
 			attack(target);
 			attackCooldown = 20;
 		}
 
-		if (specialAttackCooldown <= 0 && canSeeTarget) {
+		if (specialAttackCooldown <= 0) {
 			specialAttack(target);
 			specialAttackCooldown = 200;
 			isSpecialAttacking = true;
@@ -96,7 +72,7 @@ public class CerberusAttackGoal extends Goal {
 			roarAttackCooldown = 300;
 		}
 
-		if (this.cerberus.getAnger() > 80 && !cerberus.isRushing()) {
+		if (this.cerberus.getAnger() > 80 && distanceToTarget > 4.0D && !cerberus.isRushing()) {
 			rushAttack();
 		}
 
@@ -164,5 +140,8 @@ public class CerberusAttackGoal extends Goal {
 				else cerberus.incrementAnger(player, -10);
 			}
 		}
+		Scheduler.scheduleTask(() -> {
+			this.cerberus.setRushing(false);
+		}, 60);
 	}
 }

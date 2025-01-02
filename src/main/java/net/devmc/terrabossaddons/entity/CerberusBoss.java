@@ -182,7 +182,8 @@ public class CerberusBoss extends BossEntity {
 				.add(EntityAttributes.GENERIC_MAX_HEALTH, 15000)
 				.add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 1.0f)
 				.add(EntityAttributes.GENERIC_ARMOR, 0.5f)
-				.add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 5);
+				.add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 5)
+				.add(EntityAttributes.GENERIC_FOLLOW_RANGE, 16.0);
 	}
 
 	@Override

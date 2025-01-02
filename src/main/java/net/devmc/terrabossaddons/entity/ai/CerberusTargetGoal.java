@@ -24,13 +24,13 @@ public class CerberusTargetGoal extends ActiveTargetGoal<LivingEntity> {
 	}
 
 	@Override
-	public void start() {
-		super.start();
+	public boolean shouldRunEveryTick() {
+		return true;
 	}
 
 	@Override
-	public void tick() {
-		super.tick();
+	public boolean canStart() {
+		return true;
 	}
 
 	@Override
@@ -74,10 +74,12 @@ public class CerberusTargetGoal extends ActiveTargetGoal<LivingEntity> {
 		this.targetEntity = targetQueue.stream()
 				.findFirst()
 				.orElse(targetQueue.isEmpty() ? null : targetQueue.peek());
+
+		System.out.println("Selected target: " + (this.targetEntity != null ? this.targetEntity.getName().getString() : "None"));
 	}
 
 	private boolean isValidTarget(LivingEntity entity) {
-		if (entity == null || !entity.isAlive() || entity.isTeammate(this.cerberus) || entity.isInvulnerable() || !this.cerberus.canSee(entity) || entity.isSpectator()) {
+		if (entity == null || !entity.isAlive() || entity.isTeammate(this.cerberus) || entity.isInvulnerable() || entity.isSpectator() || entity instanceof CerberusBoss) {
 			return false;
 		}
 

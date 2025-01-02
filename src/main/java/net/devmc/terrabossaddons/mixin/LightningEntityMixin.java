@@ -26,9 +26,9 @@ public abstract class LightningEntityMixin {
 		boolean ber = false;
 		boolean us = false;
 		for (Entity dog : doggos) {
-			cer = dog.getCustomName().getString().equalsIgnoreCase("cer");
-			ber = dog.getCustomName().getString().equalsIgnoreCase("ber");
-			us = dog.getCustomName().getString().equalsIgnoreCase("us");
+			if (dog.getCustomName().getString().equalsIgnoreCase("cer")) cer = true;
+			if (dog.getCustomName().getString().equalsIgnoreCase("ber")) ber = true;
+			if (dog.getCustomName().getString().equalsIgnoreCase("us")) us = true;
 		}
 		if (cer && ber && us) self.getWorld().spawnEntity(new CerberusBoss(TerraBossAddons.CERBERUS, self.getWorld()));
 	}

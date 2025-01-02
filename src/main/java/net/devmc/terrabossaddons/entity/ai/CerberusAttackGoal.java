@@ -60,6 +60,11 @@ public class CerberusAttackGoal extends Goal {
 	}
 
 	@Override
+	public boolean shouldRunEveryTick() {
+		return true;
+	}
+
+	@Override
 	public void tick() {
 		LivingEntity target = this.cerberus.getTarget();
 		if (target == null || !target.isAlive()) return;

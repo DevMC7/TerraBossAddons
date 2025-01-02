@@ -18,11 +18,9 @@ import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ItemScatterer;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import software.bernie.geckolib.core.animation.Animation;
 import software.bernie.geckolib.core.animation.AnimationState;
@@ -78,7 +76,6 @@ public class CerberusBoss extends BossEntity {
 	@Override
 	public void tick() {
 		super.tick();
-		super.tick();
 
 		if (this.getAnger() > 60 && new Random().nextInt(1, 20) == 10) {
 			this.setAnger(this.getAnger() -2);
@@ -91,7 +88,7 @@ public class CerberusBoss extends BossEntity {
 	@Override
 	protected void initGoals() {
 		this.goalSelector.add(1, new CerberusTargetGoal(this));
-		this.goalSelector.add(1, new CerberusAttackGoal(this));
+		this.goalSelector.add(2, new CerberusAttackGoal(this));
 		this.goalSelector.add(2, new WanderAroundGoal(this, 0.5f));
 		this.goalSelector.add(3, new LookAroundGoal(this));
 	}
@@ -163,9 +160,7 @@ public class CerberusBoss extends BossEntity {
 	}
 
 	private void playDeathAnimation() {
-		for (int i = 50; i > 0; i--) {
-			Scheduler.scheduleTask(() -> this.addVelocity(new Vec3d(this.getX(), this.getY() + 0.1, this.getZ())), 2);
-		}
+
 	}
 
 	public Set<LivingEntity> getAttackers() {
@@ -185,9 +180,9 @@ public class CerberusBoss extends BossEntity {
 	public static DefaultAttributeContainer.Builder createCerberusAttributes() {
 		return HostileEntity.createMobAttributes()
 				.add(EntityAttributes.GENERIC_MAX_HEALTH, 15000)
-				.add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.2f)
+				.add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 1.0f)
 				.add(EntityAttributes.GENERIC_ARMOR, 0.5f)
-				.add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 2);
+				.add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 5);
 	}
 
 	@Override
@@ -224,7 +219,7 @@ public class CerberusBoss extends BossEntity {
             }
 		} else if (this.isRoaring()) {
 			tAnimationState.getController().setAnimation(ROAR);
-			this.setRoaring(false);
+			Scheduler.scheduleTask(() -> this.setRoaring(false), 70);
 		} else {
 			tAnimationState.getController().setAnimation(IDLE);
 		}

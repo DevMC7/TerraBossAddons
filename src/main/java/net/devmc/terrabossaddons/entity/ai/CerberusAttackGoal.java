@@ -112,7 +112,7 @@ public class CerberusAttackGoal extends AttackGoal {
 
 		for (int i = 0; i < 3; i++) {
 			BlazeEntity blaze = new BlazeEntity(EntityType.BLAZE, this.cerberus.getWorld());
-			Vec3d spawnPos = this.cerberus.getPos().add(new Random().nextDouble() * 6 - 3, 1, new Random().nextDouble() * 6 - 3);
+			Vec3d spawnPos = this.cerberus.getPos().add(new Random().nextDouble() * 8 - 3, 3, new Random().nextDouble() * 8 - 3);
 			blaze.refreshPositionAndAngles(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), 0, 0);
 			this.cerberus.getWorld().spawnEntity(blaze);
 		}

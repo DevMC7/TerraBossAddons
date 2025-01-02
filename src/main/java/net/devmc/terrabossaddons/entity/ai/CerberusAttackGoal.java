@@ -136,8 +136,12 @@ public class CerberusAttackGoal extends AttackGoal {
 				else cerberus.incrementAnger(player, -10);
 			}
 		}
-		Scheduler.scheduleTask(() -> {
-			this.cerberus.setRushing(false);
-		}, 60);
+		Scheduler.scheduleRepeatingTask(() -> {
+			LivingEntity target = this.cerberus.getTarget();
+			if (target == null || !target.isAlive() || this.cerberus.squaredDistanceTo(target) <= 4.0D) {
+				this.cerberus.setRushing(false);
+				this.cerberus.setSprinting(false);
+			}
+		}, 5, () -> !this.cerberus.isRushing());
 	}
 }

@@ -1,13 +1,21 @@
 package net.devmc.terrabossaddons.util;
 
+import java.util.function.BooleanSupplier;
+
 public class ScheduledTask {
 
 	private final Runnable task;
+	private final int delay;
 	private int remainingTicks;
+	private final boolean isRepeating;
+	private final BooleanSupplier stopCondition;
 
-	public ScheduledTask(Runnable task, int delayInTicks) {
+	public ScheduledTask(Runnable task, int delay, boolean isRepeating, BooleanSupplier stopCondition) {
 		this.task = task;
-		this.remainingTicks = delayInTicks;
+		this.delay = delay;
+		this.remainingTicks = delay;
+		this.isRepeating = isRepeating;
+		this.stopCondition = stopCondition;
 	}
 
 	public boolean tick() {
@@ -20,5 +28,17 @@ public class ScheduledTask {
 
 	public void run() {
 		task.run();
+	}
+
+	public void reset() {
+		remainingTicks = delay;
+	}
+
+	public boolean isRepeating() {
+		return isRepeating;
+	}
+
+	public boolean shouldStop() {
+		return stopCondition != null && stopCondition.getAsBoolean();
 	}
 }

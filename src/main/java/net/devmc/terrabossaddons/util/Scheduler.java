@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.function.BooleanSupplier;
 
 public final class Scheduler {
 
@@ -22,13 +23,22 @@ public final class Scheduler {
 		while (iterator.hasNext()) {
 			ScheduledTask task = iterator.next();
 			if (task.tick()) {
-				task.run();
-				iterator.remove();
+				if (!task.shouldStop()) {
+					task.run();
+					if (task.isRepeating()) task.reset();
+					else iterator.remove();
+				} else {
+					iterator.remove();
+				}
 			}
 		}
 	}
 
 	public static void scheduleTask(Runnable task, int delay) {
-		taskQueue.add(new ScheduledTask(task, delay));
+		taskQueue.add(new ScheduledTask(task, delay, false, null));
+	}
+
+	public static void scheduleRepeatingTask(Runnable task, int interval, BooleanSupplier stopCondition) {
+		taskQueue.add(new ScheduledTask(task, interval, true, stopCondition));
 	}
 }

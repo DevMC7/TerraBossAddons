@@ -74,8 +74,6 @@ public class CerberusTargetGoal extends ActiveTargetGoal<LivingEntity> {
 		this.targetEntity = targetQueue.stream()
 				.findFirst()
 				.orElse(targetQueue.isEmpty() ? null : targetQueue.peek());
-
-		System.out.println("Selected target: " + (this.targetEntity != null ? this.targetEntity.getName().getString() : "None"));
 	}
 
 	private boolean isValidTarget(LivingEntity entity) {

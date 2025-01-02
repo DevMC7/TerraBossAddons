@@ -56,24 +56,20 @@ public class CerberusAttackGoal extends AttackGoal {
 
 		this.cerberus.getLookControl().lookAt(target, 30.0F, 30.0F);
 
-		if (attackCooldown <= 0 && distanceToTarget <= 4.0D) {
-			attack(target);
-			attackCooldown = 20;
-		}
-
-		if (specialAttackCooldown <= 0) {
+		if (this.cerberus.getAnger() > 80 && distanceToTarget > 4.0D && distanceToTarget <= 256.0D && !cerberus.isRushing()) {
+			rushAttack();
+		} else if (roarAttackCooldown <= 0 && new Random().nextInt(100) < 15) {
+			roarAttack(target);
+			roarAttackCooldown = 300;
+		} else if (specialAttackCooldown <= 0 && distanceToTarget <= 7.0D) {
 			specialAttack(target);
 			specialAttackCooldown = 200;
 			isSpecialAttacking = true;
-		}
-
-		if (roarAttackCooldown <= 0 && new Random().nextInt(100) < 15) {
-			roarAttack(target);
-			roarAttackCooldown = 300;
-		}
-
-		if (this.cerberus.getAnger() > 80 && distanceToTarget > 4.0D && !cerberus.isRushing()) {
-			rushAttack();
+		} else if (attackCooldown <= 0 && distanceToTarget <= 4.0D) {
+			attack(target);
+			attackCooldown = 20;
+		} else {
+			this.cerberus.getNavigation().startMovingTo(this.cerberus.getTarget(), cerberus.getMovementSpeed());
 		}
 
 		if (attackCooldown > 0) {

@@ -3,8 +3,8 @@ package net.devmc.terrabossaddons.util;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.BooleanSupplier;
 
 public final class Scheduler {
@@ -12,7 +12,7 @@ public final class Scheduler {
 	private Scheduler() {
 	}
 
-	public static final Queue<ScheduledTask> taskQueue = new LinkedList<>();
+		public static final Queue<ScheduledTask> taskQueue = new ConcurrentLinkedQueue<>();
 
 	public static void init() {
 		ServerTickEvents.END_SERVER_TICK.register(server -> onTick());

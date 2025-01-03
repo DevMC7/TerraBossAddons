@@ -45,51 +45,55 @@ public class CerberusTargetGoal extends ActiveTargetGoal<LivingEntity> {
 				this::isValidTarget
 		);
 
-		PriorityQueue<LivingEntity> targetQueue = new PriorityQueue<>(
-				Comparator.comparingDouble(entity -> {
-					double distance = this.cerberus.distanceTo(entity);
+		List<LivingEntity> playerTargets = potentialTargets.stream()
+				.filter(entity -> entity instanceof PlayerEntity)
+				.toList();
 
-					if (entity.hasStatusEffect(StatusEffects.INVISIBILITY)) {
-						distance *= 1.5;
+		List<LivingEntity> otherTargets = potentialTargets.stream()
+				.filter(entity -> !(entity instanceof PlayerEntity))
+				.toList();
+
+		Comparator<LivingEntity> targetComparator = Comparator.comparingDouble(entity -> {
+			double distance = this.cerberus.distanceTo(entity);
+
+			if (entity.hasStatusEffect(StatusEffects.INVISIBILITY)) {
+				distance *= 1.5;
+			}
+
+			StatusEffectInstance strengthEffect = entity.getStatusEffect(StatusEffects.STRENGTH);
+			if (strengthEffect != null) {
+				int amplifier = strengthEffect.getAmplifier() + 1;
+				distance *= Math.min(2, amplifier / Math.max(1, amplifier - 10));
+			}
+
+			if (entity instanceof PlayerEntity player) {
+				if (cerberus.getRecentDamageSource() != null
+						&& cerberus.getRecentDamageSource().getAttacker() != null
+						&& cerberus.getRecentDamageSource().getAttacker() instanceof PlayerEntity attacker) {
+					if (player.getUuid().equals(attacker.getUuid())) {
+						distance *= 0.2;
 					}
-					StatusEffectInstance strengthEffect = entity.getStatusEffect(StatusEffects.STRENGTH);
-					if (strengthEffect != null) {
-						int amplifier = strengthEffect.getAmplifier() + 1;
-						distance *= Math.min(2, amplifier / Math.max(1, amplifier - 10));
-					}
+				}
+				distance *= 0.5;
+				distance /= Math.max(1, cerberus.getAngerLeveLMultiplier(player) / 1.5f);
+			} else if (entity instanceof AnimalEntity) {
+				distance *= Math.max(1, Math.min(0.75, ((double) cerberus.getAnger()) / 100));
+			}
 
-					if (entity instanceof PlayerEntity player) {
-						if (cerberus.getRecentDamageSource() != null
-								&& cerberus.getRecentDamageSource().getAttacker() != null
-								&& cerberus.getRecentDamageSource().getAttacker() instanceof PlayerEntity attacker) {
-							if (player.getUuid().equals(attacker.getUuid())) {
-								distance *= 0.1;
-							}
-						}
-						distance *= 0.5;
-						distance *= Math.max(1, cerberus.getAngerLeveLMultiplier(player) / 1.5f);
-					} else if (entity instanceof AnimalEntity) {
-						distance *= Math.max(1, Math.min(0.8, ((double) cerberus.getAnger()) / 100));
-					} else if (entity instanceof BlazeEntity) {
-						return Integer.MAX_VALUE;
-					}
+			return distance;
+		});
 
-					return distance;
-				})
-		);
+		PriorityQueue<LivingEntity> playerQueue = new PriorityQueue<>(targetComparator);
+		PriorityQueue<LivingEntity> entityQueue = new PriorityQueue<>(targetComparator);
 
-		targetQueue.addAll(potentialTargets);
+		playerQueue.addAll(playerTargets);
+		entityQueue.addAll(otherTargets);
 
-		this.targetEntity = targetQueue.stream()
-				.findFirst()
-				.orElse(targetQueue.isEmpty() ? null : targetQueue.peek());
-
-		if (targetEntity != null)
-			System.out.println("Targeted: " + targetEntity.getName());
+		this.targetEntity = !playerQueue.isEmpty() ? playerQueue.peek() : entityQueue.peek();
 	}
 
 	private boolean isValidTarget(LivingEntity entity) {
-		if (entity == null || !entity.isAlive() || entity.isTeammate(this.cerberus) || entity.isInvulnerable() || entity.isSpectator() || entity instanceof CerberusBoss) {
+		if (entity == null || !entity.isAlive() || entity.isTeammate(this.cerberus) || entity.isInvulnerable() || entity.isSpectator() || entity instanceof CerberusBoss || entity instanceof BlazeEntity) {
 			return false;
 		}
 

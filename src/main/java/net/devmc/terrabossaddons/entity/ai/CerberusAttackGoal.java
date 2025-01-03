@@ -28,7 +28,7 @@ public class CerberusAttackGoal extends AttackGoal {
 		this.cerberus = cerberus;
 		this.attackCooldown = 20;
 		this.specialAttackCooldown = 200;
-		this.roarAttackCooldown = 300;
+		this.roarAttackCooldown = 500;
 		this.isSpecialAttacking = false;
 	}
 
@@ -36,7 +36,7 @@ public class CerberusAttackGoal extends AttackGoal {
 	public void start() {
 		this.attackCooldown = 20;
 		this.specialAttackCooldown = 200;
-		this.roarAttackCooldown = 300;
+		this.roarAttackCooldown = 500;
 		this.isSpecialAttacking = false;
 	}
 
@@ -58,9 +58,9 @@ public class CerberusAttackGoal extends AttackGoal {
 
 		if (this.cerberus.getAnger() > 80 && distanceToTarget > 4.0D && distanceToTarget <= 256.0D && !cerberus.isRushing()) {
 			rushAttack();
-		} else if (roarAttackCooldown <= 0 && new Random().nextInt(100) < 15) {
+		} else if (roarAttackCooldown <= 0 && new Random().nextInt(100) == 1) {
 			roarAttack(target);
-			roarAttackCooldown = 300;
+			roarAttackCooldown = 500;
 		} else if (specialAttackCooldown <= 0 && distanceToTarget <= 7.0D) {
 			specialAttack(target);
 			specialAttackCooldown = 200;

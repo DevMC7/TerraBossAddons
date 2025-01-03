@@ -23,11 +23,18 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.ItemScatterer;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import software.bernie.geckolib.core.animation.Animation;
 import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
+import team.lodestar.lodestone.handlers.ScreenshakeHandler;
+import team.lodestar.lodestone.registry.common.particle.LodestoneParticleRegistry;
+import team.lodestar.lodestone.systems.easing.Easing;
+import team.lodestar.lodestone.systems.particle.builder.WorldParticleBuilder;
+import team.lodestar.lodestone.systems.particle.data.GenericParticleData;
+import team.lodestar.lodestone.systems.screenshake.ScreenshakeInstance;
 
 import java.util.*;
 
@@ -151,9 +158,13 @@ public class CerberusBoss extends BossEntity {
 		if (!this.getWorld().isClient) {
 			this.setHealth(0.1F);
 			this.setInvulnerable(true);
+			this.setNoGravity(true);
+			this.setVelocity(0, 0, 0);
+			this.clearGoals(goal -> true);
 			playDeathAnimation();
 
 			Scheduler.scheduleTask(() -> {
+				ScreenshakeHandler.addScreenshake(new ScreenshakeInstance(40).setIntensity(0.9f, 1.2f, 0.7f).setEasing(Easing.BACK_IN_OUT));
 				ItemScatterer.spawn(this.getWorld(), this.getX(), this.getY(), this.getZ(), new ItemStack(TerraBossAddons.HADES_HELMET));
 				this.discard();
 				super.onDeath(source);
@@ -162,7 +173,36 @@ public class CerberusBoss extends BossEntity {
 	}
 
 	private void playDeathAnimation() {
+		final double targetHeight = this.getY() + 20;
+		final double[] y = {this.getY()};
 
+		Scheduler.scheduleRepeatingTask(() -> {
+			if (y[0] < targetHeight) {
+				y[0] += (targetHeight - y[0]) / 100;
+				this.setPosition(this.getX(), y[0], this.getZ());
+			}
+
+			for (int i = 0; i < 5; i++) {
+				double particleX = this.getX() + (this.random.nextDouble() - 0.5) * 2;
+				double particleY = this.getY() + (this.random.nextDouble() - 0.5) * 2;
+				double particleZ = this.getZ() + (this.random.nextDouble() - 0.5) * 2;
+
+				GenericParticleData scaleData = GenericParticleData.create(1.5f, 0.0f)
+						.setEasing(Easing.CIRC_OUT, Easing.LINEAR)
+						.build();
+
+				GenericParticleData transparencyData = GenericParticleData.create(1.0f, 0.0f)
+						.setEasing(Easing.CIRC_IN, Easing.LINEAR)
+						.build();
+
+				WorldParticleBuilder.create(LodestoneParticleRegistry.SPARKLE_PARTICLE)
+						.setScaleData(scaleData)
+						.setTransparencyData(transparencyData)
+						.setMotion(new Vec3d(0, 0.1, 0))
+						.setLifetime(20)
+						.repeat(this.getWorld(), particleX, particleY, particleZ, 20);
+			}
+		}, 2, () -> y[0] >= targetHeight);
 	}
 
 	public Set<LivingEntity> getAttackers() {
@@ -181,7 +221,7 @@ public class CerberusBoss extends BossEntity {
 
 	public static DefaultAttributeContainer.Builder createCerberusAttributes() {
 		return HostileEntity.createMobAttributes()
-				.add(EntityAttributes.GENERIC_MAX_HEALTH, 15000)
+				.add(EntityAttributes.GENERIC_MAX_HEALTH, 30000)
 				.add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 1.0f)
 				.add(EntityAttributes.GENERIC_ARMOR, 0.5f)
 				.add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 5)

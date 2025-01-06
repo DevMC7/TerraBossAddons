@@ -74,8 +74,8 @@ public class CerberusTargetGoal extends ActiveTargetGoal<LivingEntity> {
 						distance /= 2;
 					}
 				}
-				distance /= 2;
-				distance /= Math.max(1, Math.min(cerberus.getAngerLeveLMultiplier(player) / 1.5f, 3));
+				distance /= 3;
+				distance /= cerberus.getAngerLeveLMultiplier(player);
 			} else if (entity instanceof AnimalEntity) {
 				distance *= Math.max(1, Math.min(0.75, ((double) cerberus.getAnger()) / 100));
 			}

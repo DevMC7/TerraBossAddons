@@ -71,11 +71,11 @@ public class CerberusTargetGoal extends ActiveTargetGoal<LivingEntity> {
 						&& cerberus.getRecentDamageSource().getAttacker() != null
 						&& cerberus.getRecentDamageSource().getAttacker() instanceof PlayerEntity attacker) {
 					if (player.getUuid().equals(attacker.getUuid())) {
-						distance *= 0.2;
+						distance /= 2;
 					}
 				}
-				distance *= 0.5;
-				distance /= Math.max(1, cerberus.getAngerLeveLMultiplier(player) / 1.5f);
+				distance /= 2;
+				distance /= Math.max(1, Math.min(cerberus.getAngerLeveLMultiplier(player) / 1.5f, 3));
 			} else if (entity instanceof AnimalEntity) {
 				distance *= Math.max(1, Math.min(0.75, ((double) cerberus.getAnger()) / 100));
 			}

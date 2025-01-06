@@ -12,7 +12,7 @@ public final class Scheduler {
 	private Scheduler() {
 	}
 
-		public static final Queue<ScheduledTask> taskQueue = new ConcurrentLinkedQueue<>();
+	public static final Queue<ScheduledTask> taskQueue = new ConcurrentLinkedQueue<>();
 
 	public static void init() {
 		ServerTickEvents.END_SERVER_TICK.register(server -> onTick());

@@ -15,7 +15,7 @@
   "environment": "*",
   "entrypoints": {
     "client": [
-      "net.devmc.terrabossaddons.client.TerraBossAddonsClient"
+      "net.devmc.terrabossaddons.TerraBossAddonsClient"
     ],
     "main": [
       "net.devmc.terrabossaddons.TerraBossAddons"

@@ -1,6 +1,5 @@
-package net.devmc.terrabossaddons.client;
+package net.devmc.terrabossaddons;
 
-import net.devmc.terrabossaddons.TerraBossAddons;
 import net.devmc.terrabossaddons.entity.CerberusBossRenderer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;

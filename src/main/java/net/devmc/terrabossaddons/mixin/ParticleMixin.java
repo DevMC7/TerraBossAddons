@@ -1,6 +1,6 @@
 package net.devmc.terrabossaddons.mixin;
 
-import net.devmc.terrabossaddons.item.HadesHelmetItem;
+import net.devmc.terrabossaddons.TerraBossAddons;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
@@ -28,7 +28,7 @@ public abstract class ParticleMixin {
 
 		PlayerEntity closestPlayer = world.getClosestPlayer(this.x, this.y, this.z, 3, false);
 
-		if (closestPlayer != null && closestPlayer.getInventory().getArmorStack(3).getItem() instanceof HadesHelmetItem) {
+		if (closestPlayer != null && closestPlayer.getInventory().getArmorStack(3).isOf(TerraBossAddons.HADES_HELMET)) {
 			double playerX = closestPlayer.getX();
 			double playerY = closestPlayer.getY() + 2.2;
 			double playerZ = closestPlayer.getZ();

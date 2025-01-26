@@ -9,6 +9,7 @@ import net.minecraft.entity.mob.BlazeEntity;
 import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.MathHelper;
 
 import java.util.Comparator;
 import java.util.List;
@@ -36,7 +37,7 @@ public class CerberusTargetGoal extends ActiveTargetGoal<LivingEntity> {
 
 	@Override
 	protected void findClosestTarget() {
-		float searchRadius = Math.max(10, (float) this.cerberus.getAnger() / 10 + this.cerberus.getHealth() / 2);
+		float searchRadius = MathHelper.clamp((float) this.cerberus.getAnger() / 10 + this.cerberus.getHealth() / 100, 8, 32);
 		Box searchArea = new Box(cerberus.getBlockPos()).expand(searchRadius);
 
 		List<LivingEntity> potentialTargets = this.cerberus.getWorld().getEntitiesByClass(
